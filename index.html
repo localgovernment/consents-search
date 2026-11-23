@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search for building and resource consents | Taupō District Council</title>
+  <meta name="description" content="Find a property by address, valuation number or legal description and view its building and resource consents.">
+
+  <!-- ArcGIS Maps SDK for JavaScript -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.34/"></script>
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#search-input">Skip to search</a>
+
+  <header class="page-header">
+    <div class="wrap">
+      <h1>Search for building and resource consents</h1>
+      <p class="lede">Find a property by its address, valuation number or legal description, then select it to see the building and resource consents recorded against it.</p>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <!-- Search + results -->
+    <section class="panel search-panel" aria-labelledby="search-heading">
+      <h2 id="search-heading" class="visually-hidden">Find a property</h2>
+      <form id="search-form" role="search" autocomplete="off">
+        <label for="search-input" class="field-label">Address, valuation number or legal description</label>
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/></svg>
+          <input id="search-input" type="search" inputmode="search" spellcheck="false"
+                 placeholder="e.g. 2 Tongariro Street, 0730200400 or Lot 1 DPS 14890"
+                 aria-describedby="search-hint" aria-controls="results-list">
+          <button type="button" id="clear-btn" class="clear-btn" aria-label="Clear search" hidden>&times;</button>
+        </div>
+        <p id="search-hint" class="hint">Type at least 3 characters. Every word you type must match. You can also click a property on the map.</p>
+      </form>
+
+      <div id="results-status" class="results-status" role="status" aria-live="polite"></div>
+      <ul id="results-list" class="results-list" aria-label="Matching properties"></ul>
+    </section>
+
+    <!-- Map + consents -->
+    <section class="panel detail-panel" aria-labelledby="detail-heading">
+      <div id="map" class="map" role="region" aria-label="Map of the selected property"></div>
+
+      <div id="detail" class="detail">
+        <div id="detail-empty" class="empty-state">
+          <h2 id="detail-heading">No property selected</h2>
+          <p>Search for a property and select it from the list to see its consents.</p>
+        </div>
+
+        <div id="detail-content" hidden>
+          <div class="property-summary">
+            <h2 id="property-title"></h2>
+            <dl id="property-facts" class="facts"></dl>
+          </div>
+
+          <div id="consents-status" class="consents-status" role="status" aria-live="polite"></div>
+
+          <div id="consent-tabs" class="tabs" role="tablist" aria-label="Consent type" hidden>
+            <button role="tab" id="tab-building" aria-controls="panel-building" aria-selected="true">Building consents <span class="count" id="count-building">0</span></button>
+            <button role="tab" id="tab-resource" aria-controls="panel-resource" aria-selected="false" tabindex="-1">Resource consents <span class="count" id="count-resource">0</span></button>
+          </div>
+          <div id="panel-building" class="tab-panel" role="tabpanel" aria-labelledby="tab-building" tabindex="0"></div>
+          <div id="panel-resource" class="tab-panel" role="tabpanel" aria-labelledby="tab-resource" tabindex="0" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap page-footer">
+    <p>Consent information is taken from council records and may not be complete or up to date. For a full history of a property, request a property file or Land Information Memorandum (LIM).</p>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
