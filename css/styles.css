@@ -145,6 +145,15 @@ a:hover { color: var(--navy); }
 .search-box input::placeholder { color: #8a8a8a; font-size: 1rem; }
 .search-box input:focus { outline: 3px solid var(--focus); outline-offset: 0; border-color: var(--navy); }
 .search-box input::-webkit-search-cancel-button { display: none; }
+@media (max-width: 640px) {
+  .search-panel { padding: 16px; }
+  .search-box input { padding-left: 12px; padding-right: 40px; }
+  .search-box input::placeholder { font-size: .875rem; }
+  .search-icon { right: 12px; }
+}
+@media (max-width: 380px) {
+  .search-box input::placeholder { font-size: .8125rem; }
+}
 .search-icon {
   position: absolute; right: 14px; top: 50%; width: 22px; height: 22px; transform: translateY(-50%);
   fill: var(--orange); pointer-events: none;
