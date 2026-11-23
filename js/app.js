@@ -86,7 +86,9 @@
   // ---------------------------------------------------------------- helpers
   function debounce(fn, ms) {
     let t;
-    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    const d = (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    d.cancel = () => clearTimeout(t);
+    return d;
   }
 
   function escapeHtml(s) {
@@ -174,15 +176,28 @@
   let searchController = null;
   let currentResults = [];
   let currentTerms = [];
+  let currentKey = null;      // search phrase the displayed results belong to
+  let inflight = null;        // { key, promise } for the search currently running
   let selectedValuation = null;
 
-  async function runSearch(text) {
+  // Resolves to the result rows, or undefined if the search was superseded or failed.
+  function runSearch(text) {
     const terms = searchTerms(text);
+    const key = terms.join(" ");
+    if (inflight && inflight.key === key) return inflight.promise;
+    const promise = doSearch(text, terms, key);
+    inflight = { key, promise };
+    promise.finally(() => { if (inflight && inflight.promise === promise) inflight = null; });
+    return promise;
+  }
+
+  async function doSearch(text, terms, key) {
     const joined = terms.join("");
     if (searchController) searchController.abort();
 
     if (joined.length < CFG.minSearchLength) {
       currentResults = [];
+      currentKey = null;
       renderResults([], terms, 0);
       setStatus(els.resultsStatus, text.trim() ? `Type at least ${CFG.minSearchLength} characters.` : "");
       return;
@@ -207,8 +222,10 @@
       const results = sortResults(fs.features.map((f) => f.attributes), terms);
       currentResults = results;
       currentTerms = terms;
+      currentKey = key;
       renderResults(results, terms, total);
       loadConsentCounts(results, signal);
+      return results;
     } catch (err) {
       if (isAbort(err)) return;
       console.error(err);
@@ -503,6 +520,7 @@
       els.clear.hidden = true;
       currentResults = rows;
       currentTerms = [];
+      currentKey = "";   // empty box: Enter picks the top property at the clicked spot
       renderResults(rows, [], rows.length);
       setStatus(els.resultsStatus, rows.length === 1
         ? "1 property at the location you clicked."
@@ -520,9 +538,17 @@
     els.clear.hidden = !els.input.value;
     debouncedSearch(els.input.value);
   });
-  els.form.addEventListener("submit", (e) => {
+  // Enter selects the top result (searching first if the list isn't up to date).
+  els.form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    runSearch(els.input.value);
+    debouncedSearch.cancel();
+    const text = els.input.value;
+    const key = searchTerms(text).join(" ");
+    const results = key === currentKey && currentResults.length ? currentResults : await runSearch(text);
+    // Ignore if the user kept typing while the search ran
+    if (results && results.length && searchTerms(els.input.value).join(" ") === key) {
+      selectProperty(results[0]);
+    }
   });
   els.input.addEventListener("keydown", (e) => {
     if (e.key === "ArrowDown") {
