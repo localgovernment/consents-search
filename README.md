@@ -1,5 +1,14 @@
 # consents-search
 
+![Built with Claude](https://img.shields.io/badge/Built%20with-Claude-D97757?style=for-the-badge&logo=claude&logoColor=white)
+![Status: work in progress](https://img.shields.io/badge/Status-Work%20in%20progress-orange?style=for-the-badge)
+
+> [!NOTE]
+> **Written with Claude.** The code in this repository was written with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, and reviewed and directed by council staff.
+
+> [!WARNING]
+> **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 377 consent records across about 37 properties), so most properties will show no consents, and the records that do appear may not be complete or accurate. Do not rely on this page for property or consent decisions.
+
 One page that replaces Taupō District Council's separate building consent and resource consent search pages.
 
 1. Search the **Rateable Property** layer by valuation number, address or legal description. Each word is matched with a case-insensitive wildcard against `valuation_id`, `address`, `m_property_legal_desc`, `m_supplementary_legal_desc` and `m_cert_of_title`.
