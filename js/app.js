@@ -52,6 +52,8 @@
     $arcgis.import("@arcgis/core/Graphic.js")
   ]);
 
+  const DEFAULT_TITLE = document.title;
+
   const propertyLayer = new FeatureLayer({
     url: CFG.propertyLayerUrl,
     title: "Rateable properties",
@@ -82,6 +84,19 @@
     constraints: { snapToZoom: false },
     popupEnabled: false
   });
+
+  // Home button: return to the default map view and clear the search.
+  // (A plain button rather than the Home widget, which is deprecated in SDK 4.32+.)
+  const homeButton = document.createElement("button");
+  homeButton.type = "button";
+  homeButton.className = "map-home-btn";
+  homeButton.title = homeButton.ariaLabel = "Reset map and clear search";
+  homeButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.3 1 7.4l.7.8L3 7.1V15h4v-4h2v4h4V7.1l1.3 1.1.7-.8L8 1.3zM12 14h-2v-4H6v4H4V6.2l4-3.5 4 3.5V14z"/></svg>';
+  homeButton.addEventListener("click", () => {
+    resetAll();
+    view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600 }).catch(() => {});
+  });
+  view.ui.add(homeButton, "top-left");
 
   // ---------------------------------------------------------------- helpers
   function debounce(fn, ms) {
@@ -584,7 +599,7 @@
       runSearch(q);
     }
     if (!v) {
-      selectedValuation = null;
+      if (selectedValuation) clearSelection();
       return;
     }
     try {
@@ -608,6 +623,38 @@
       console.error(err);
     }
   }
+  // ---------------------------------------------------------------- reset
+  function clearSelection() {
+    if (detailController) detailController.abort();
+    selectedValuation = null;
+    selectionLayer.removeAll();
+    els.results.querySelectorAll('.result-btn[aria-current="true"]').forEach((b) => b.removeAttribute("aria-current"));
+    els.detailContent.hidden = true;
+    els.detailContent.classList.remove("is-loading");
+    els.detailContent.removeAttribute("aria-busy");
+    els.detailEmpty.hidden = false;
+    els.tabs.hidden = true;
+    els.panelBuilding.innerHTML = "";
+    els.panelResource.innerHTML = "";
+    setStatus(els.consentsStatus, "");
+    document.title = DEFAULT_TITLE;
+  }
+
+  // Clear the search box, results and selected property (map is reset by the Home button itself).
+  function resetAll() {
+    debouncedSearch.cancel();
+    if (searchController) searchController.abort();
+    els.input.value = "";
+    els.clear.hidden = true;
+    currentResults = [];
+    currentTerms = [];
+    currentKey = null;
+    els.results.innerHTML = "";
+    setStatus(els.resultsStatus, "");
+    clearSelection();
+    if (location.search) history.pushState({}, "", location.pathname);
+  }
+
   window.addEventListener("popstate", loadFromUrl);
   loadFromUrl();
 })();
