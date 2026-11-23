@@ -4,7 +4,7 @@
 ![Status: work in progress](https://img.shields.io/badge/Status-Work%20in%20progress-orange?style=for-the-badge)
 
 > [!NOTE]
-> **Written with Claude.** The code in this repository was written with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, and reviewed and directed by council staff.
+> **Written with Claude.** The code in this repository was written with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, at the direction of council staff. It has **not** been independently code reviewed.
 
 > [!WARNING]
 > **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 377 consent records across about 37 properties), so most properties will show no consents, and the records that do appear may not be complete or accurate. Do not rely on this page for property or consent decisions.

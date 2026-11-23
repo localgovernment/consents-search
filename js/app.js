@@ -336,7 +336,7 @@
     els.propertyFacts.innerHTML = facts
       .map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`)
       .join("");
-    document.title = `${els.propertyTitle.textContent} – consents | Taupō District Council`;
+    document.title = `[Beta] ${els.propertyTitle.textContent} – consents | Taupō District Council`;
   }
 
   async function showOnMap(a, signal) {
