@@ -188,6 +188,8 @@ a:hover { color: var(--navy); }
 .result-btn[aria-current="true"] { background: #e6f6f8; border-left-color: var(--teal); }
 .result-address { font-weight: 700; color: var(--navy); display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
 .result-meta { font-size: .8125rem; color: var(--muted); display: block; }
+/* Legal description: one line, truncated with … (full text in the tooltip) */
+.result-legal { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .result-meta .val { font-variant-numeric: tabular-nums; color: var(--text-strong); font-weight: 600; }
 .badge-count {
   flex: none;

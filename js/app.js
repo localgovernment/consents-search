@@ -291,14 +291,16 @@
       btn.className = "result-btn";
       btn.dataset.valuation = r.valuation_id;
       if (r.valuation_id === selectedValuation) btn.setAttribute("aria-current", "true");
-      const legal = r.m_property_legal_desc || r.m_supplementary_legal_desc || "";
+      // The supplementary legal description is always contained in the full
+      // legal description, so it's only used as a fallback.
+      const legal = (r.m_property_legal_desc || r.m_supplementary_legal_desc || "").trim();
       btn.innerHTML = `
         <span class="result-address">
           <span>${highlight(r.address || "(no address)", terms)}</span>
           <span class="badge-count" data-count-for="${escapeHtml(r.valuation_id)}" hidden></span>
         </span>
         <span class="result-meta">Valuation <span class="val">${highlight(r.valuation_id, terms)}</span></span>
-        ${legal ? `<span class="result-meta">${highlight(legal, terms)}</span>` : ""}`;
+        ${legal ? `<span class="result-meta result-legal" title="${escapeHtml(legal)}">${highlight(legal, terms)}</span>` : ""}`;
       btn.addEventListener("click", () => selectProperty(r));
       li.appendChild(btn);
       frag.appendChild(li);
@@ -363,9 +365,7 @@
     els.propertyTitle.textContent = a.address || `Valuation ${a.valuation_id}`;
     const facts = [
       ["Valuation number", a.valuation_id],
-      ["Legal description", a.m_property_legal_desc],
-      ["Supplementary legal description",
-        a.m_supplementary_legal_desc && a.m_supplementary_legal_desc !== a.m_property_legal_desc ? a.m_supplementary_legal_desc : ""],
+      ["Legal description", a.m_property_legal_desc || a.m_supplementary_legal_desc],
       ["Certificate of title", a.m_cert_of_title || a.certificate_of_title]
     ].filter(([, v]) => v);
     els.propertyFacts.innerHTML = facts
