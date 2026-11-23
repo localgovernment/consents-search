@@ -10,15 +10,25 @@
   <link rel="stylesheet" href="https://js.arcgis.com/4.34/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.34/"></script>
 
+  <!-- Taupō District Council web fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Prompt:wght@500;600&display=swap">
+
+  <link rel="icon" href="assets/tdc-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <a class="skip-link" href="#search-input">Skip to search</a>
 
-  <header class="page-header">
-    <div class="wrap">
-      <h1>Search for building and resource consents</h1>
-      <p class="lede">Find a property by its address, valuation number or legal description, then select it to see the building and resource consents recorded against it.</p>
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="site-logo" href="https://www.taupodc.govt.nz/">
+        <img src="assets/tdc-logo.svg" alt="Great Lake Taupō – Taupō District Council home" width="234" height="66">
+      </a>
+      <nav class="site-header__links" aria-label="Council website">
+        <a href="https://www.taupodc.govt.nz/">taupodc.govt.nz</a>
+      </nav>
     </div>
   </header>
 
@@ -27,6 +37,18 @@
       <span class="beta-tag">Beta</span>
       <p><strong>This page uses test data.</strong> It is a work in progress. Consent records shown here may be incomplete or inaccurate, and most properties will show no consents. Do not rely on this information for property or consent decisions.</p>
     </div>
+  </div>
+
+  <div class="wrap page-intro">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="https://www.taupodc.govt.nz/">Home</a></li>
+        <li><a href="https://www.taupodc.govt.nz/rules-regulations-and-licenses">Rules, regulations and licenses</a></li>
+        <li aria-current="page">Search for building and resource consents</li>
+      </ol>
+    </nav>
+    <h1>Search for building and resource consents</h1>
+    <p class="lede">Find a property by its address, valuation number or legal description, then select it to see the building and resource consents recorded against it.</p>
   </div>
 
   <main class="wrap layout">
@@ -78,9 +100,18 @@
     </section>
   </main>
 
-  <footer class="wrap page-footer">
-    <p>Consent information is taken from council records and may not be complete or up to date. For a full history of a property, request a property file or Land Information Memorandum (LIM).</p>
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <div class="site-footer__text">
+        <p>Consent information is taken from council records and may not be complete or up to date.</p>
+        <p class="site-footer__copy">&copy; <span id="year">2026</span> Taupō District Council</p>
+      </div>
+      <a class="site-footer__logo" href="https://www.taupodc.govt.nz/">
+        <img src="assets/tdc-logo-reversed.svg" alt="Great Lake Taupō – Taupō District Council home" width="300" height="85">
+      </a>
+    </div>
   </footer>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
