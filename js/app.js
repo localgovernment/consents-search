@@ -431,7 +431,7 @@
     els.panelResource.innerHTML = consentTable(resource, "resource");
 
     if (!rows.length) {
-      setStatus(els.consentsStatus, "No building or resource consents are recorded against this valuation number.");
+      setStatus(els.consentsStatus, "No building or resource consents were found for this property.");
     } else {
       setStatus(els.consentsStatus,
         `${rows.length} ${rows.length === 1 ? "consent" : "consents"} found: ` +
@@ -443,7 +443,7 @@
 
   function consentTable(rows, kind) {
     if (!rows.length) {
-      return `<p class="none">No ${kind} consents are recorded for this property.</p>`;
+      return `<p class="none">No ${kind} consents were found for this property.</p>`;
     }
     const body = rows.map((r) => {
       const type = consentTypeInfo(r.CONSENT_APPLN_TYPE);
