@@ -364,12 +364,15 @@
   }
 
   async function loadConsents(valuationId, signal) {
-    els.tabs.hidden = true;
-    els.panelBuilding.innerHTML = "";
-    els.panelResource.innerHTML = "";
-    els.panelBuilding.hidden = true;
-    els.panelResource.hidden = true;
+    // Keep the previous consents on screen (dimmed) until the new ones arrive,
+    // so the page height doesn't collapse and jump while loading.
+    els.detailContent.classList.add("is-loading");
+    els.detailContent.setAttribute("aria-busy", "true");
     setStatus(els.consentsStatus, "Loading consents…");
+    const done = () => {
+      els.detailContent.classList.remove("is-loading");
+      els.detailContent.removeAttribute("aria-busy");
+    };
 
     let rows;
     try {
@@ -383,9 +386,16 @@
     } catch (err) {
       if (isAbort(err)) return;
       console.error(err);
+      done();
+      els.tabs.hidden = true;
+      els.panelBuilding.innerHTML = "";
+      els.panelResource.innerHTML = "";
+      els.panelBuilding.hidden = true;
+      els.panelResource.hidden = true;
       setStatus(els.consentsStatus, "Sorry, consent information is not available right now. Please try again.", true);
       return;
     }
+    done();
 
     // Newest first
     rows.sort((x, y) =>

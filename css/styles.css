@@ -19,6 +19,10 @@
 
 * { box-sizing: border-box; }
 
+/* Always reserve room for the vertical scrollbar so the layout doesn't
+   shift sideways when the page grows or shrinks (e.g. selecting a property). */
+html { scrollbar-gutter: stable; }
+
 body {
   margin: 0;
   background: var(--bg);
@@ -152,6 +156,8 @@ mark { background: #fff1a8; color: inherit; padding: 0; }
 .facts dd { margin: 0; overflow-wrap: anywhere; }
 
 .consents-status { margin: 8px 0; color: var(--muted); }
+#detail-content .tabs, #detail-content .tab-panel { transition: opacity .15s; }
+#detail-content.is-loading .tabs, #detail-content.is-loading .tab-panel { opacity: .45; pointer-events: none; }
 .consents-status.error { color: var(--bad-fg); }
 
 /* Tabs */
