@@ -104,16 +104,19 @@
     return "'" + String(s).replace(/'/g, "''") + "'";
   }
 
+  // The whole input is one search phrase: "144 lakewood" looks for
+  // "144 LAKEWOOD" as a single string, not "144" and "lakewood" separately.
+  // Returned as an array (of zero or one phrase) for the helpers below.
   function searchTerms(text) {
-    return normalise(text)
+    const phrase = normalise(text)
       .toUpperCase()
-      .replace(/[%_]/g, " ")        // don't let users inject wildcards
-      .replace(/,/g, " ")
-      .split(/\s+/)
-      .filter(Boolean);
+      .replace(/[%_]/g, "")         // don't let users inject wildcards
+      .replace(/\s+/g, " ")         // collapse repeated spaces
+      .trim();
+    return phrase ? [phrase] : [];
   }
 
-  // Every term must appear in at least one search field.
+  // The phrase must appear in at least one search field.
   function buildWhere(terms) {
     return terms.map((t) => {
       const like = sqlString("%" + t + "%");
@@ -239,7 +242,7 @@
     els.results.innerHTML = "";
     if (!rows.length) {
       if (terms.join("").length >= CFG.minSearchLength) {
-        setStatus(els.resultsStatus, "No properties match your search. Check the spelling or try fewer words.");
+        setStatus(els.resultsStatus, "No properties match your search. Check the spelling, or try typing less (for example just the street name).");
       }
       return;
     }

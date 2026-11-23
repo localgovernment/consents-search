@@ -14,7 +14,7 @@ window.CONSENTS_SEARCH_CONFIG = {
   consentKeyField: "PROP_Valuation_Reference_Number",
 
   // Fields searched with a case-insensitive wildcard (LIKE '%term%').
-  // Every word the user types must appear in at least one of these fields.
+  // The whole search text, as one phrase, must appear in at least one of these fields.
   searchFields: [
     "valuation_id",
     "address",
