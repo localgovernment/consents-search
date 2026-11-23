@@ -20,6 +20,7 @@
     detailEmpty: $("detail-empty"),
     detailContent: $("detail-content"),
     propertyTitle: $("property-title"),
+    propertySites: $("property-sites"),
     propertyFacts: $("property-facts"),
     consentsStatus: $("consents-status"),
     tabs: $("consent-tabs"),
@@ -134,11 +135,23 @@
   }
 
   // The phrase must appear in at least one search field.
-  function buildWhere(terms) {
+  function buildWhere(terms, fields = CFG.searchFields) {
     return terms.map((t) => {
       const like = sqlString("%" + t + "%");
-      return "(" + CFG.searchFields.map((f) => `UPPER(${f}) LIKE ${like}`).join(" OR ") + ")";
+      return "(" + fields.map((f) => `UPPER(${f}) LIKE ${like}`).join(" OR ") + ")";
     }).join(" AND ");
+  }
+
+  // Site names in the consents data have untidy spacing: " Storey Place ,Taupo"
+  function tidySiteName(s) {
+    return String(s || "").replace(/\s*,\s*/g, ", ").replace(/\s+/g, " ").replace(/^[\s,]+|[\s,]+$/g, "");
+  }
+  // Comparison key: letters and digits only ("2 Tongariro St, Taupo" ~ "2 TONGARIROSTTAUPO")
+  function compareKey(s) {
+    return normalise(String(s || "")).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  }
+  function contains(value, phrase) {
+    return !!value && normalise(String(value)).toUpperCase().includes(phrase);
   }
 
   function highlight(text, terms) {
@@ -224,7 +237,7 @@
 
     try {
       const where = buildWhere(terms);
-      const [fs, total] = await Promise.all([
+      const [fs, propTotal, consentMatches] = await Promise.all([
         propertyLayer.queryFeatures({
           where,
           outFields: PROPERTY_FIELDS,
@@ -232,9 +245,26 @@
           orderByFields: ["address", "valuation_id"],
           num: CFG.maxResults
         }, { signal }),
-        propertyLayer.queryFeatureCount({ where }, { signal })
+        propertyLayer.queryFeatureCount({ where }, { signal }),
+        searchConsents(terms, signal)
       ]);
-      const results = sortResults(fs.features.map((f) => f.attributes), terms);
+
+      // Attach matching consents to their properties; fetch properties that
+      // were only found through a consent.
+      const rows = fs.features.map((f) => f.attributes);
+      const byValuation = new globalThis.Map(rows.map((r) => [r.valuation_id, r]));
+      const missing = [...consentMatches.keys()].filter((v) => !byValuation.has(v));
+      for (const r of await fetchProperties(missing, signal)) {
+        if (!byValuation.has(r.valuation_id)) { byValuation.set(r.valuation_id, r); rows.push(r); }
+      }
+      const phrase = terms[0];
+      for (const r of rows) {
+        const matches = consentMatches.get(r.valuation_id);
+        r._ownMatch = CFG.searchFields.some((f) => contains(r[f], phrase));
+        r._consentMatches = matches && !r._ownMatch ? matches : null;
+      }
+      const total = propTotal + rows.filter((r) => !r._ownMatch).length;
+      const results = sortResults(rows, terms).slice(0, CFG.maxResults);
       currentResults = results;
       currentTerms = terms;
       currentKey = key;
@@ -248,13 +278,59 @@
     }
   }
 
-  // Exact/prefix valuation matches first, then natural address order.
+  // Consents whose file ID or site name contains the phrase, grouped by valuation number.
+  async function searchConsents(terms, signal) {
+    const out = new globalThis.Map();
+    try {
+      const fs = await consentsTable.queryFeatures({
+        where: buildWhere(terms, CFG.consentSearchFields),
+        outFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME", "CONSENT_APPLN_TYPE", CFG.consentKeyField],
+        returnGeometry: false,
+        orderByFields: ["CONSENT_FILE_ID"],
+        num: CFG.maxConsentMatches
+      }, { signal });
+      const phrase = terms[0];
+      for (const { attributes: c } of fs.features) {
+        const v = c[CFG.consentKeyField];
+        if (!v) continue;
+        if (!out.has(v)) out.set(v, []);
+        out.get(v).push({
+          fileId: c.CONSENT_FILE_ID,
+          site: tidySiteName(c.CONSENT_SITE_NAME),
+          type: c.CONSENT_APPLN_TYPE,
+          on: contains(c.CONSENT_FILE_ID, phrase) ? "id" : "site"
+        });
+      }
+    } catch (err) {
+      if (isAbort(err)) throw err;
+      console.warn("Consent search unavailable", err);   // still show property matches
+    }
+    return out;
+  }
+
+  async function fetchProperties(valuationIds, signal) {
+    const rows = [];
+    for (let i = 0; i < valuationIds.length; i += 200) {
+      const chunk = valuationIds.slice(i, i + 200);
+      const fs = await propertyLayer.queryFeatures({
+        where: `valuation_id IN (${chunk.map(sqlString).join(",")})`,
+        outFields: PROPERTY_FIELDS,
+        returnGeometry: false
+      }, { signal });
+      rows.push(...fs.features.map((f) => f.attributes));
+    }
+    return rows;
+  }
+
+  // Exact consent number / valuation matches first, then prefix matches, then natural address order.
   function sortResults(rows, terms) {
     const first = terms[0] || "";
     const rank = (r) => {
       const v = (r.valuation_id || "").toUpperCase();
-      if (v === first) return 0;
-      if (v.startsWith(first)) return 1;
+      const ids = (r._consentMatches || []).map((m) => String(m.fileId || "").toUpperCase());
+      const addr = normalise(r.address || "").toUpperCase();
+      if (v === first || ids.includes(first)) return 0;
+      if (v.startsWith(first) || ids.some((id) => id.startsWith(first)) || addr.startsWith(first)) return 1;
       return 2;
     };
     const collator = new Intl.Collator("en-NZ", { numeric: true, sensitivity: "base" });
@@ -300,12 +376,25 @@
           <span class="badge-count" data-count-for="${escapeHtml(r.valuation_id)}" hidden></span>
         </span>
         <span class="result-meta">Valuation <span class="val">${highlight(r.valuation_id, terms)}</span></span>
-        ${legal ? `<span class="result-meta result-legal" title="${escapeHtml(legal)}">${highlight(legal, terms)}</span>` : ""}`;
+        ${legal ? `<span class="result-meta result-legal" title="${escapeHtml(legal)}">${highlight(legal, terms)}</span>` : ""}
+        ${r._consentMatches ? consentMatchLine(r._consentMatches, terms) : ""}`;
       btn.addEventListener("click", () => selectProperty(r));
       li.appendChild(btn);
       frag.appendChild(li);
     }
     els.results.appendChild(frag);
+  }
+
+  // "(Consent BC1995/951416)" or "(Consent site: 36-64 Tongariro Street, Taupo)" + "+2 more"
+  function consentMatchLine(matches, terms) {
+    const ids = [...new Set(matches.map((m) => m.fileId))];
+    const first = matches.find((m) => m.on === "id") || matches[0];
+    const text = first.on === "id"
+      ? `Consent ${highlight(first.fileId, terms)}`
+      : `Consent site: ${highlight(first.site, terms)}`;
+    const more = ids.length > 1 ? ` <span class="more">+${ids.length - 1} more</span>` : "";
+    const title = matches.map((m) => `${m.fileId} – ${m.site}`).join("\n");
+    return `<span class="result-consent" title="${escapeHtml(title)}">(${text})${more}</span>`;
   }
 
   // One statistics query tells the user which results have consents.
@@ -334,8 +423,12 @@
   // ---------------------------------------------------------------- selection
   let detailController = null;
 
-  async function selectProperty(attrs, { updateUrl = true } = {}) {
+  // highlightIds: consent file IDs to highlight (defaults to the consents this
+  // result was found through, if any).
+  async function selectProperty(attrs, { updateUrl = true, highlightIds } = {}) {
     selectedValuation = attrs.valuation_id;
+    if (!highlightIds) highlightIds = (attrs._consentMatches || []).map((m) => m.fileId);
+    const markTerms = attrs._consentMatches ? currentTerms : [];
     els.results.querySelectorAll(".result-btn").forEach((b) => {
       if (b.dataset.valuation === selectedValuation) b.setAttribute("aria-current", "true");
       else b.removeAttribute("aria-current");
@@ -343,6 +436,10 @@
     if (updateUrl) {
       const url = new URL(location.href);
       url.searchParams.set("valuation", selectedValuation);
+      // Only consent-number matches go in the link (site name matches can be many)
+      const idMatches = (attrs._consentMatches || []).filter((m) => m.on === "id").map((m) => m.fileId);
+      if (idMatches.length) url.searchParams.set("consent", idMatches.join(","));
+      else url.searchParams.delete("consent");
       history.pushState({ valuation: selectedValuation }, "", url);
     }
 
@@ -352,9 +449,11 @@
     const { signal } = detailController;
 
     showOnMap(attrs, signal);
-    await loadConsents(attrs.valuation_id, signal);
+    const matchRow = await loadConsents(attrs, signal, highlightIds, markTerms);
 
-    if (window.matchMedia("(max-width: 860px)").matches) {
+    if (matchRow) {
+      matchRow.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else if (window.matchMedia("(max-width: 860px)").matches) {
       els.detailContent.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
@@ -363,6 +462,8 @@
     els.detailEmpty.hidden = true;
     els.detailContent.hidden = false;
     els.propertyTitle.textContent = a.address || `Valuation ${a.valuation_id}`;
+    els.propertySites.hidden = true;
+    els.propertySites.innerHTML = "";
     const facts = [
       ["Valuation number", a.valuation_id],
       ["Legal description", a.m_property_legal_desc || a.m_supplementary_legal_desc],
@@ -398,7 +499,9 @@
     }
   }
 
-  async function loadConsents(valuationId, signal) {
+  // Returns the first highlighted consent row, if any.
+  async function loadConsents(property, signal, highlightIds = [], markTerms = []) {
+    const valuationId = property.valuation_id;
     // Keep the previous consents on screen (dimmed) until the new ones arrive,
     // so the page height doesn't collapse and jump while loading.
     els.detailContent.classList.add("is-loading");
@@ -442,8 +545,10 @@
 
     els.countBuilding.textContent = building.length;
     els.countResource.textContent = resource.length;
-    els.panelBuilding.innerHTML = consentTable(building, "building");
-    els.panelResource.innerHTML = consentTable(resource, "resource");
+    const hl = new Set(highlightIds.map((id) => String(id).toUpperCase()));
+    els.panelBuilding.innerHTML = consentTable(building, "building", hl, markTerms);
+    els.panelResource.innerHTML = consentTable(resource, "resource", hl, markTerms);
+    renderSiteNames(property, rows);
 
     if (!rows.length) {
       setStatus(els.consentsStatus, "No building or resource consents were found for this property.");
@@ -453,10 +558,48 @@
         `${building.length} building, ${resource.length} resource.`);
     }
     els.tabs.hidden = false;
-    selectTab(building.length || !resource.length ? els.tabBuilding : els.tabResource, false);
+    // Open the tab holding the first highlighted consent, else building (if any)
+    const firstMatch = rows.find((r) => hl.has(String(r.CONSENT_FILE_ID).toUpperCase()));
+    const tab = firstMatch
+      ? (consentTypeInfo(firstMatch.CONSENT_APPLN_TYPE).category === "resource" ? els.tabResource : els.tabBuilding)
+      : (building.length || !resource.length ? els.tabBuilding : els.tabResource);
+    selectTab(tab, false);
+    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector("tr.is-match") : null;
   }
 
-  function consentTable(rows, kind) {
+  // Site names from the consents that differ from the rating address, under the address heading.
+  function renderSiteNames(property, consents) {
+    const seen = new Set([compareKey(property.address)]);
+    const names = [];
+    for (const c of consents) {
+      const name = tidySiteName(c.CONSENT_SITE_NAME);
+      const k = compareKey(name);
+      if (!k || seen.has(k)) continue;
+      seen.add(k);
+      names.push(name);
+    }
+    if (!names.length) { els.propertySites.hidden = true; return; }
+    const SHOW = 3;
+    const list = (arr) => arr.map((n) => `<span class="site">${escapeHtml(n)}</span>`).join("");
+    els.propertySites.innerHTML =
+      `<span class="label">${names.length === 1 ? "Consent site name" : "Consent site names"}:</span> ` +
+      `<span class="sites">${list(names.slice(0, SHOW))}</span>` +
+      (names.length > SHOW
+        ? `<span class="sites-more" hidden>${list(names.slice(SHOW))}</span>` +
+          `<button type="button" class="link-btn" aria-expanded="false">+${names.length - SHOW} more</button>`
+        : "");
+    const btn = els.propertySites.querySelector(".link-btn");
+    if (btn) btn.addEventListener("click", () => {
+      const more = els.propertySites.querySelector(".sites-more");
+      const open = more.hidden;
+      more.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "show fewer" : `+${names.length - SHOW} more`;
+    });
+    els.propertySites.hidden = false;
+  }
+
+  function consentTable(rows, kind, hl = new Set(), markTerms = []) {
     if (!rows.length) {
       return `<p class="none">No ${kind} consents were found for this property.</p>`;
     }
@@ -467,14 +610,16 @@
       const decided = formatDate(r.CONSENT_DECISION_DATE);
       const closedLabel = r.CONSENT_COMPLETED_DATE ? "Completed" : (r.CONSENT_LAPSED_DATE ? "Lapsed" : "");
       const closed = formatDate(r.CONSENT_COMPLETED_DATE || r.CONSENT_LAPSED_DATE);
-      return `<tr>
+      const isMatch = hl.has(String(r.CONSENT_FILE_ID).toUpperCase());
+      return `<tr${isMatch ? ' class="is-match"' : ""}>
         <td data-label="Consent">
-          <span class="consent-id">${escapeHtml(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID)}</span>
+          <span class="consent-id">${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</span>
           <span class="consent-type" title="${escapeHtml(r.CONSENT_APPLN_TYPE)}">${escapeHtml(type.label)}</span>
+          ${isMatch ? '<span class="match-tag">Search match</span>' : ""}
         </td>
         <td data-label="Description" class="desc">
           ${escapeHtml(r.CONSENT_DESCRIPTION || "")}
-          ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${escapeHtml(r.CONSENT_SITE_NAME)}</span>` : ""}
+          ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms)}</span>` : ""}
         </td>
         <td data-label="Status"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span></td>
         <td data-label="Lodged" class="nowrap">${lodged || "–"}</td>
@@ -615,7 +760,8 @@
           renderResults([attrs], [], 1);
           loadConsentCounts([attrs]);
         }
-        selectProperty(attrs, { updateUrl: false });
+        const consentParam = params.get("consent");
+        selectProperty(attrs, { updateUrl: false, highlightIds: consentParam ? consentParam.split(",") : [] });
       } else {
         setStatus(els.resultsStatus, `No property found with valuation number ${v}.`, true);
       }

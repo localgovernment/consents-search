@@ -11,11 +11,11 @@
 
 One page that replaces Taupō District Council's separate building consent and resource consent search pages.
 
-1. Search the **Rateable Property** layer by valuation number, address or legal description. The whole search text is matched as one phrase (case-insensitive, `LIKE '%phrase%'`) against `valuation_id`, `address`, `m_property_legal_desc`, `m_supplementary_legal_desc` and `m_cert_of_title`.
+1. Search the **Rateable Property** layer by valuation number, address or legal description, and the **consents** table by consent number (`CONSENT_FILE_ID`) or consent site name (`CONSENT_SITE_NAME`). The whole search text is matched as one phrase (case-insensitive, `LIKE '%phrase%'`). Properties found only through a consent show that consent in brackets under the address.
 2. Matches appear in a list as you type. Each one shows how many consents it has.
-3. Select a property to see its building and resource consents. The consents table is joined on `valuation_id` = `PROP_Valuation_Reference_Number` (one property to many consents). The parcel is highlighted on the map.
+3. Select a property to see its building and resource consents. The consents table is joined on `valuation_id` = `PROP_Valuation_Reference_Number` (one property to many consents). The parcel is highlighted on the map, consent site names that differ from the rating address are listed under the address, and if the property was found through a consent, the right tab opens with that consent highlighted.
 
-You can also click a parcel on the map. A property can be linked directly with `?valuation=0730200400`, and a search with `?q=tongariro`.
+You can also click a parcel on the map. A property can be linked directly with `?valuation=0730200400` (add `&consent=BC1995/951416` to highlight a consent), and a search with `?q=tongariro`.
 
 ## Files
 

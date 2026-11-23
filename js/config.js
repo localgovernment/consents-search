@@ -23,6 +23,11 @@ window.CONSENTS_SEARCH_CONFIG = {
     "m_cert_of_title"
   ],
 
+  // Consent fields also searched. A match here returns the property the
+  // consent belongs to, with the matching consent shown under its address.
+  consentSearchFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME"],
+  maxConsentMatches: 2000,
+
   minSearchLength: 3,
   searchDebounceMs: 300,
   maxResults: 100,
