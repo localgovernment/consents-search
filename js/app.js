@@ -749,6 +749,13 @@
   });
 
   // ---------------------------------------------------------------- wiring
+  // Search hint: collapse it while the results list has properties in it,
+  // show it again whenever the list is empty (start, < 3 chars, no matches, reset).
+  const hint = $("search-hint");
+  const syncHint = () => hint.classList.toggle("is-collapsed", els.results.children.length > 0);
+  new MutationObserver(syncHint).observe(els.results, { childList: true });
+  syncHint();
+
   const debouncedSearch = debounce(runSearch, CFG.searchDebounceMs);
   els.input.addEventListener("input", () => {
     els.clear.hidden = !els.input.value;

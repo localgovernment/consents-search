@@ -172,7 +172,14 @@ a:hover { color: var(--navy); }
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
   border: 0; background: transparent; font-size: 1.6rem; line-height: 1; padding: 4px 10px; cursor: pointer; color: var(--orange);
 }
-.hint { font-size: .875rem; color: var(--muted); margin: 8px 0 14px; }
+.hint {
+  font-size: .875rem; color: var(--muted); margin: 8px 0 14px;
+  max-height: 8em; overflow: hidden;            /* room for the hint at any width */
+  transition: max-height .3s ease, opacity .2s ease, margin .3s ease;
+}
+/* Hidden while there are results to show; back when the list is empty */
+.hint.is-collapsed { max-height: 0; opacity: 0; margin-top: 0; margin-bottom: 4px; }
+@media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
 
 .results-status { font-size: .875rem; color: var(--muted); min-height: 1.5em; margin-bottom: 8px; }
 .results-status.error { color: var(--bad-fg); }
