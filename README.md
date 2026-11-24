@@ -25,6 +25,7 @@ You can also click a parcel on the map. A property can be linked directly with `
 | `js/config.js` | Service URLs, join fields, search fields, and labels for consent type, stage and decision codes. Types are grouped by code prefix (BC = building, RC = resource, anything else = other), and the raw type code is always shown |
 | `js/app.js` | Search, results, consents, map and deep-link logic |
 | `css/styles.css` | Styling to match www.taupodc.govt.nz (Prompt and Open Sans fonts, council colours). Responsive: a sidebar on desktop, stacked on narrow screens, with table rows shown as cards on phones |
+| `FOLLOW-UPS.md` | Open issues and questions to resolve before go-live |
 | `assets/` | Council logo, in a dark version for the header and a white version for the footer |
 
 ## Services
