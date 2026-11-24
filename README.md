@@ -15,7 +15,9 @@ One page that replaces Taupō District Council's separate building consent and r
 2. Matches appear in a list as you type. Each one shows how many consents it has.
 3. Select a property to see its building and resource consents. The consents table is joined on `valuation_id` = `PROP_Valuation_Reference_Number` (one property to many consents). The parcel is highlighted on the map, consent site names that differ from the rating address are listed under the address, and if the property was found through a consent, the right tab opens with that consent highlighted.
 
-You can also click a parcel on the map. A property can be linked directly with `?valuation=0730200400` (add `&consent=BC1995/951416` to highlight a consent), and a search with `?q=tongariro`.
+You can also click a parcel on the map. A property can be linked directly with `?valuation=0730200400` (add `&consent=BC1995/951416` to highlight a consent), and a search with `?q=tongariro`. A consent that isn't linked to any property opens with `?consent=BC2026/CA260964` alone.
+
+Consents that match a consent number or site name search but aren't linked to any property appear at the end of the results as **No linked property**. Selecting one shows just that consent and returns the map to the home view.
 
 ## Files
 

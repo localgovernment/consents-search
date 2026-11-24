@@ -32,19 +32,16 @@ Effect on the page:
 1. Hide the decision pill for Lodged (`L`) and Current (`C`) consents (recommended).
 2. Remove the decision pill entirely, since the council's system doesn't show it on the summary screen.
 
-### Consents not linked to a property are currently hidden
-Some consents can't be shown anywhere on the page at the moment, even though a search by **consent number** or **consent site name** matches them in the consents data. The page only shows consents under a property, so a consent with no matching property is dropped:
+### Consents not linked to a property
+*Updated 2026-11-24. The page now shows these as "No linked property" results; the data still needs fixing.*
 
-- **No valuation number:** 2,593 consents (5,566 rows), mostly from 2020 onwards, have no `PROP_Valuation_Reference_Number`. Example: **BC2026/CA260964**.
-- **Valuation number not in the property layer:** some consents have a valuation number that doesn't exist in the Rateable Property layer (e.g. retired or not-yet-rated valuations), so there's no property to show them under.
+Some consents can't be linked to a property in the Rateable Property layer. The page now lists them at the end of the search results, with "No linked property" in place of the address. Selecting one shows just that consent and returns the map to the home view. They still can't appear under a property or on the map, so the underlying data needs fixing:
 
-What people see now: searching such a consent's number or site name returns "No properties match your search", although the consent exists.
+- **No valuation number:** 2,593 consents (5,566 rows), mostly from 2020 onwards, have no `PROP_Valuation_Reference_Number`. Example: **BC2026/CA260964** (3/51 Scannell Street). Only 4% (126) have a unit-style site name such as "3/51 …", so missing unit addresses aren't the main cause.
+- **Superseded valuation numbers:** some consents are linked only to a valuation number that no longer exists in the property layer. Example: **RC2007/070363** (131 Tiverton Downs Road) is linked to **0739140100**, which appears to have been split into 0739140101, 0739140102 and **0739140103**. The last of these is 131 Tiverton Downs Road itself. Consents on old valuations should probably be carried over to the current ones.
+- **Partly linked consents (export gaps):** some consents have one row linked to a valuation and other rows with an empty valuation. Example: RC2007/070363 has 1 linked row and 3 empty ones. That suggests some of the properties a consent relates to couldn't be matched to a valuation during the export. 707 unlinked consents are on more than one row; the extreme case is **BC2025/EX0475**, with 66 rows.
 
-**Options:**
-1. Fix the links in the export, so every consent has a current valuation number.
-2. Change the page so these consents appear in search results on their own, e.g. "BC2026/CA260964 – not linked to a property", and selecting one shows its details without a map or property.
-
-A mix of both is likely to be needed, since some consents may never have a rated property.
+**To do (data):** link consents to current valuation numbers in the export, including carrying them over from superseded valuations. Once linked, they automatically appear under their properties, with no change needed to the page.
 
 ### Status Q and A records not found in the council's system
 The 1,066 `Q` rows and 2 `A` rows couldn't be found in the council's system. They're probably test-only records. Check them when the real export is set up. The page shows these codes as-is.

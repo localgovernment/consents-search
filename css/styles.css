@@ -212,6 +212,8 @@ a:hover { color: var(--navy); }
 }
 .result-btn:hover { background: #f0fafc; }
 .result-btn[aria-current="true"] { background: #e6f6f8; border-left-color: var(--teal); }
+/* Consents with no linked property: same card, address in muted italics */
+.result-btn.is-unlinked .result-address > span:first-child { color: var(--muted); font-style: italic; font-weight: 600; }
 .result-address { font-weight: 700; color: var(--navy); display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
 .result-meta { font-size: .8125rem; color: var(--muted); display: block; }
 /* Legal description: one line, truncated with … (full text in the tooltip) */

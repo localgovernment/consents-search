@@ -230,7 +230,9 @@
   let currentTerms = [];
   let currentKey = null;      // search phrase the displayed results belong to
   let inflight = null;        // { key, promise } for the search currently running
-  let selectedValuation = null;
+  let selectedKey = null;     // valuation number, or "consent:<ID>" for a consent with no linked property
+  // Identifies a result: its valuation number, or its consent ID when it has no linked property
+  const resultKey = (r) => (r._unlinked ? `consent:${r._consentId}` : r.valuation_id);
 
   // Resolves to the result rows, or undefined if the search was superseded or failed.
   function runSearch(text) {
@@ -291,13 +293,21 @@
       }
       // Approximate when a broad search hits the limits (more consents or properties than fetched)
       const consentOnly = rows.filter((r) => !r._ownMatch).length;
-      const total = consentMatches.truncated ? Infinity : propTotal + Math.max(consentOnly, allMissing.length);
-      const results = sortResults(rows, terms).slice(0, CFG.maxResults);
+      // Valuations we looked up but that aren't in the property layer aren't properties
+      // (their consents are listed as "no linked property" instead), so don't count them
+      const notFound = missing.filter((v) => !byValuation.has(v)).length;
+      const total = consentMatches.truncated ? Infinity : propTotal + Math.max(consentOnly, allMissing.length - notFound);
+      const properties = sortResults(rows, terms).slice(0, CFG.maxResults);
+
+      // Consents not linked to any property go at the end, in whatever room is left
+      const unlinked = findUnlinked(consentMatches, byValuation, new Set([...fs.features.map((f) => f.attributes.valuation_id), ...missing]), phrase);
+      const results = properties.concat(unlinked.slice(0, Math.max(0, CFG.maxResults - properties.length)));
       currentResults = results;
       currentTerms = terms;
       currentKey = key;
       renderResults(results, terms, total);
-      loadConsentCounts(results, signal);
+      if (unlinked.length) setStatus(els.resultsStatus, resultsSummary(properties.length, total, unlinked.length, results.length, consentMatches.truncated));
+      loadConsentCounts(properties, signal);
       return results;
     } catch (err) {
       if (isAbort(err)) return;
@@ -307,8 +317,12 @@
   }
 
   // Consents whose file ID or site name contains the phrase, grouped by valuation number.
+  // out.byConsent: every matching consent (one entry per consent ID) with the set of
+  // valuation numbers it's linked to (empty when it has none) - used to find consents
+  // that aren't linked to any property.
   async function searchConsents(terms, signal) {
     const out = new globalThis.Map();
+    out.byConsent = new globalThis.Map();
     try {
       const fs = await consentsTable.queryFeatures({
         where: buildWhere(terms, CFG.consentSearchFields),
@@ -321,20 +335,56 @@
       const phrase = terms[0];
       for (const { attributes: c } of fs.features) {
         const v = c[CFG.consentKeyField];
-        if (!v) continue;
-        if (!out.has(v)) out.set(v, []);
-        out.get(v).push({
+        const match = {
           fileId: c.CONSENT_FILE_ID,
           site: tidySiteName(c.CONSENT_SITE_NAME),
           type: c.CONSENT_APPLN_TYPE,
           on: contains(c.CONSENT_FILE_ID, phrase) ? "id" : "site"
-        });
+        };
+        if (!out.byConsent.has(match.fileId)) out.byConsent.set(match.fileId, { match, vals: new Set() });
+        if (!v) continue;
+        out.byConsent.get(match.fileId).vals.add(v);
+        if (!out.has(v)) out.set(v, []);
+        out.get(v).push(match);
       }
     } catch (err) {
       if (isAbort(err)) throw err;
       console.warn("Consent search unavailable", err);   // still show property matches
     }
     return out;
+  }
+
+  // Matching consents that can't be shown under a property: no valuation number, or
+  // only valuation numbers that aren't in the property layer. A consent that's linked
+  // to at least one property we found is shown under that property instead.
+  // checked = valuation numbers we actually looked up (others are unknown, so skipped).
+  function findUnlinked(consentMatches, byValuation, checked, phrase) {
+    const out = [];
+    for (const { match, vals } of consentMatches.byConsent.values()) {
+      const v = [...vals];
+      if (v.some((x) => byValuation.has(x))) continue;      // shown under a property
+      if (v.some((x) => !checked.has(x))) continue;         // not checked (list already full)
+      out.push({
+        _unlinked: true,
+        _consentId: match.fileId,
+        _valuationNote: v.length ? `${v[0]} (no matching property)` : "Not specified",
+        _consentMatches: [match],
+        _ownMatch: false
+      });
+    }
+    // Exact consent number first, then newest consent numbers first
+    const exact = (r) => (String(r._consentId).toUpperCase() === phrase ? 0 : 1);
+    return out.sort((a, b) => exact(a) - exact(b) ||
+      String(b._consentId).localeCompare(String(a._consentId), "en-NZ", { numeric: true }));
+  }
+
+  // Status line when the list includes consents with no linked property
+  function resultsSummary(nProps, propTotal, nUnlinked, shown, truncated) {
+    if (truncated || propTotal + nUnlinked > shown) {
+      return `Showing ${truncated ? "the first " : ""}${shown}${truncated ? "" : ` of ${(propTotal + nUnlinked).toLocaleString("en-NZ")}`} matches – add more detail to narrow the list.`;
+    }
+    const c = `${nUnlinked} ${nUnlinked === 1 ? "consent" : "consents"} with no linked property`;
+    return nProps ? `${nProps} matching ${nProps === 1 ? "property" : "properties"} and ${c}.` : `${c}.`;
   }
 
   // Batches run in parallel; 100 IDs per request keeps URLs a sensible length.
@@ -394,8 +444,22 @@
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "result-btn";
-      btn.dataset.valuation = r.valuation_id;
-      if (r.valuation_id === selectedValuation) btn.setAttribute("aria-current", "true");
+      btn.dataset.key = resultKey(r);
+      if (resultKey(r) === selectedKey) btn.setAttribute("aria-current", "true");
+      btn.addEventListener("click", () => selectProperty(r));
+      li.appendChild(btn);
+      frag.appendChild(li);
+      if (r._unlinked) {
+        btn.classList.add("is-unlinked");
+        btn.innerHTML = `
+          <span class="result-address">
+            <span>No linked property</span>
+            <span class="badge-count">1 consent</span>
+          </span>
+          <span class="result-meta">Valuation <span class="val">${escapeHtml(r._valuationNote)}</span></span>
+          ${consentMatchLine(r._consentMatches, terms)}`;
+        continue;
+      }
       // The supplementary legal description is always contained in the full
       // legal description, so it's only used as a fallback.
       const legal = (r.m_property_legal_desc || r.m_supplementary_legal_desc || "").trim();
@@ -407,9 +471,6 @@
         <span class="result-meta">Valuation <span class="val">${highlight(r.valuation_id, terms)}</span></span>
         ${legal ? `<span class="result-meta result-legal" title="${escapeHtml(legal)}">${highlight(legal, terms)}</span>` : ""}
         ${r._consentMatches ? consentMatchLine(r._consentMatches, terms) : ""}`;
-      btn.addEventListener("click", () => selectProperty(r));
-      li.appendChild(btn);
-      frag.appendChild(li);
     }
     els.results.appendChild(frag);
   }
@@ -457,21 +518,27 @@
   // scrollToTop: on desktop, bring the search panel and map to the top of the screen
   // (user selections; not when a property opens from a link or the Back button).
   async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true } = {}) {
-    selectedValuation = attrs.valuation_id;
-    if (!highlightIds) highlightIds = (attrs._consentMatches || []).map((m) => m.fileId);
+    selectedKey = resultKey(attrs);
+    // A consent with no linked property is shown on its own, so there's nothing to highlight
+    if (!highlightIds) highlightIds = attrs._unlinked ? [] : (attrs._consentMatches || []).map((m) => m.fileId);
     const markTerms = attrs._consentMatches ? currentTerms : [];
     els.results.querySelectorAll(".result-btn").forEach((b) => {
-      if (b.dataset.valuation === selectedValuation) b.setAttribute("aria-current", "true");
+      if (b.dataset.key === selectedKey) b.setAttribute("aria-current", "true");
       else b.removeAttribute("aria-current");
     });
     if (updateUrl) {
       const url = new URL(location.href);
-      url.searchParams.set("valuation", selectedValuation);
-      // Only consent-number matches go in the link (site name matches can be many)
-      const idMatches = (attrs._consentMatches || []).filter((m) => m.on === "id").map((m) => m.fileId);
-      if (idMatches.length) url.searchParams.set("consent", idMatches.join(","));
-      else url.searchParams.delete("consent");
-      history.pushState({ valuation: selectedValuation }, "", url);
+      if (attrs._unlinked) {
+        url.searchParams.delete("valuation");
+        url.searchParams.set("consent", attrs._consentId);
+      } else {
+        url.searchParams.set("valuation", attrs.valuation_id);
+        // Only consent-number matches go in the link (site name matches can be many)
+        const idMatches = (attrs._consentMatches || []).filter((m) => m.on === "id").map((m) => m.fileId);
+        if (idMatches.length) url.searchParams.set("consent", idMatches.join(","));
+        else url.searchParams.delete("consent");
+      }
+      history.pushState({ key: selectedKey }, "", url);
     }
 
     renderPropertySummary(attrs);
@@ -494,14 +561,16 @@
   function renderPropertySummary(a) {
     els.detailEmpty.hidden = true;
     els.detailContent.hidden = false;
-    els.propertyTitle.textContent = a.address || `Valuation ${a.valuation_id}`;
+    els.propertyTitle.textContent = a._unlinked ? "No linked property" : (a.address || `Valuation ${a.valuation_id}`);
     els.propertySites.hidden = true;
     els.propertySites.innerHTML = "";
-    const facts = [
-      ["Valuation number", a.valuation_id],
-      ["Legal description", a.m_property_legal_desc || a.m_supplementary_legal_desc],
-      ["Certificate of title", a.m_cert_of_title || a.certificate_of_title]
-    ].filter(([, v]) => v);
+    const facts = a._unlinked
+      ? [["Valuation number", a._valuationNote]]
+      : [
+        ["Valuation number", a.valuation_id],
+        ["Legal description", a.m_property_legal_desc || a.m_supplementary_legal_desc],
+        ["Certificate of title", a.m_cert_of_title || a.certificate_of_title]
+      ].filter(([, v]) => v);
     els.propertyFacts.innerHTML = facts
       .map(([k, v]) => `<div><dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v)}</dd></div>`)
       .join("");
@@ -510,6 +579,10 @@
 
   async function showOnMap(a, signal) {
     selectionLayer.removeAll();
+    if (a._unlinked) {
+      view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600, signal }).catch(() => {});
+      return;
+    }
     try {
       const fs = await propertyLayer.queryFeatures({
         where: `OBJECTID = ${Number(a.OBJECTID)}`,
@@ -548,12 +621,21 @@
     let rows;
     try {
       const fs = await consentsTable.queryFeatures({
-        where: `${CFG.consentKeyField} = ${sqlString(valuationId)}`,
+        where: property._unlinked
+          ? `CONSENT_FILE_ID = ${sqlString(property._consentId)}`
+          : `${CFG.consentKeyField} = ${sqlString(valuationId)}`,
         outFields: CONSENT_FIELDS,
         returnGeometry: false,
         num: 2000
       }, { signal });
-      rows = fs.features.map((f) => f.attributes);
+      // The table has a row per consent per linked property; show each consent once
+      const seen = new Set();
+      rows = fs.features.map((f) => f.attributes).filter((r) => {
+        const k = `${r.CONSENT_APPLN_ID}|${r.CONSENT_FILE_ID}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
     } catch (err) {
       if (isAbort(err)) return;
       console.error(err);
@@ -810,8 +892,13 @@
       els.clear.hidden = false;
       runSearch(q);
     }
+    const consentParam = params.get("consent");
+    if (!v && consentParam) {             // ?consent=ID alone: a consent with no linked property
+      openUnlinkedFromUrl(consentParam.split(",")[0]);
+      return;
+    }
     if (!v) {
-      if (selectedValuation) clearSelection();
+      if (selectedKey) clearSelection();
       return;
     }
     try {
@@ -827,7 +914,6 @@
           renderResults([attrs], [], 1);
           loadConsentCounts([attrs]);
         }
-        const consentParam = params.get("consent");
         selectProperty(attrs, { updateUrl: false, scrollToTop: false, highlightIds: consentParam ? consentParam.split(",") : [] });
       } else {
         setStatus(els.resultsStatus, `No property found with valuation number ${v}.`, true);
@@ -839,7 +925,7 @@
   // ---------------------------------------------------------------- reset
   function clearSelection() {
     if (detailController) detailController.abort();
-    selectedValuation = null;
+    selectedKey = null;
     selectionLayer.removeAll();
     els.results.querySelectorAll('.result-btn[aria-current="true"]').forEach((b) => b.removeAttribute("aria-current"));
     els.detailContent.hidden = true;
@@ -867,6 +953,36 @@
     setStatus(els.resultsStatus, "");
     clearSelection();
     if (location.search) history.pushState({}, "", location.pathname);
+  }
+
+  async function openUnlinkedFromUrl(consentId) {
+    try {
+      const fs = await consentsTable.queryFeatures({
+        where: `CONSENT_FILE_ID = ${sqlString(consentId)}`,
+        outFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME", "CONSENT_APPLN_TYPE", CFG.consentKeyField],
+        returnGeometry: false
+      });
+      if (!fs.features.length) {
+        setStatus(els.resultsStatus, `No consent found with number ${consentId}.`, true);
+        return;
+      }
+      const c = fs.features[0].attributes;
+      const v = fs.features.map((f) => f.attributes[CFG.consentKeyField]).find(Boolean);
+      const attrs = {
+        _unlinked: true,
+        _consentId: c.CONSENT_FILE_ID,
+        _valuationNote: v ? `${v} (no matching property)` : "Not specified",
+        _consentMatches: [{ fileId: c.CONSENT_FILE_ID, site: tidySiteName(c.CONSENT_SITE_NAME), type: c.CONSENT_APPLN_TYPE, on: "id" }],
+        _ownMatch: false
+      };
+      if (!els.results.children.length) {
+        renderResults([attrs], [], 1);
+        setStatus(els.resultsStatus, "1 consent with no linked property.");
+      }
+      selectProperty(attrs, { updateUrl: false, scrollToTop: false });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   window.addEventListener("popstate", loadFromUrl);
