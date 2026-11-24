@@ -40,7 +40,9 @@ window.CONSENTS_SEARCH_CONFIG = {
   parcelMinScale: 20000,
 
   // Consent application type codes -> friendly label and category.
-  // Anything not listed falls back to prefix: BC* = building, RC* = resource.
+  // Anything not listed falls back to prefix: BC* = building, RC* = resource,
+  // anything else = "other" (an Other tab appears only when needed).
+  // The raw code is always shown above the label.
   consentTypes: {
     BCCONSENT: { label: "Building consent", category: "building" },
     BCCOA: { label: "Certificate of acceptance", category: "building" },
@@ -57,7 +59,18 @@ window.CONSENTS_SEARCH_CONFIG = {
     RCEXTTIME: { label: "Extension of time", category: "resource" },
     RCOUTLINE: { label: "Outline plan", category: "resource" },
     RCRIGHTWAY: { label: "Right of way approval", category: "resource" },
-    RCVARNCOND: { label: "Variation of conditions", category: "resource" }
+    RCVARNCOND: { label: "Variation of conditions", category: "resource" },
+    // Added with the full dataset (labels are best guesses until confirmed)
+    BCEXTTIME: { label: "Extension of time", category: "building" },
+    BCPIMGF: { label: "PIM – granny flat", category: "building" },
+    BCREACTIV: { label: "Reactivation of building consent", category: "building" },
+    RC223224C: { label: "Section 223 / 224(c) certificate", category: "resource" },
+    RCBLDLNRES: { label: "Building line restriction cancellation", category: "resource" },
+    RCCEREXUSE: { label: "Certificate of existing use", category: "resource" },
+    RCCOMBINED: { label: "Combined land use and subdivision", category: "resource" },
+    RCDEEMBDRY: { label: "Deemed permitted boundary activity", category: "resource" },
+    RCPOSTSUB: { label: "Post-subdivision", category: "resource" },
+    RCS224CER: { label: "Section 224(c) certificate", category: "resource" }
   },
 
   // CONSENT_APPLN_STAGE_CODE -> label shown as the consent status, with a tone for the badge colour
@@ -73,6 +86,43 @@ window.CONSENTS_SEARCH_CONFIG = {
     SUSPENDED: { label: "Suspended", tone: "warn" },
     LAPSED: { label: "Lapsed", tone: "warn" },
     WITHDRAWN: { label: "Withdrawn", tone: "neutral" },
-    REFUSED: { label: "Refused", tone: "bad" }
+    REFUSED: { label: "Refused", tone: "bad" },
+    GRANTED: { label: "Granted", tone: "good" },
+    RESOLVED: { label: "Resolved", tone: "good" },
+    NOTIFIED: { label: "Notified", tone: "info" },
+    HEARING: { label: "Hearing", tone: "info" },
+    INFREQUEST: { label: "Further information requested", tone: "info" },
+    REMINDISSU: { label: "Reminder issued", tone: "info" },
+    APPEALED: { label: "Appealed", tone: "warn" },
+    EXPIRED: { label: "Expired", tone: "warn" }
+  },
+
+  // CONSENT_STATUS letter -> label. Only used when a consent has no stage code.
+  // (P, Q and A all appear as Historic / Archived in the council's system – assumed.)
+  statuses: {
+    L: { label: "Lodged", tone: "info" },
+    C: { label: "Current", tone: "info" },
+    D: { label: "Determined", tone: "good" },
+    P: { label: "Historic / archived", tone: "neutral" },
+    Q: { label: "Historic / archived", tone: "neutral" },
+    A: { label: "Historic / archived", tone: "neutral" },
+    R: { label: "Rejected", tone: "bad" },
+    X: { label: "Cancelled", tone: "neutral" },
+    S: { label: "Suspended", tone: "warn" }
+  },
+
+  // CONSENT_DECISION_TYPE_CODE -> label, shown under the status when it adds
+  // something (e.g. "Granted" under "Issued"). Codes not listed show as-is.
+  decisions: {
+    GRANTED: "Granted",
+    APPROVED: "Approved",
+    ALLOWED: "Allowed",
+    ISSUED: "Issued",
+    COMPLETED: "Completed",
+    DECLINED: "Declined",
+    REFUSED: "Refused",
+    LAPSED: "Lapsed",
+    EXPIRED: "Expired",
+    SUSPENDED: "Suspended"
   }
 };

@@ -7,7 +7,7 @@
 > **Written with Claude.** The code in this repository was written with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, at the direction of council staff. It has **not** been independently code reviewed.
 
 > [!WARNING]
-> **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 95,000 consent records), which may not be complete or accurate. Do not rely on this page for property or consent decisions.
+> **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 95,000 rows, one per consent per linked property, covering about 61,000 consents), which may not be complete or accurate. Do not rely on this page for property or consent decisions.
 
 One page that replaces Taupō District Council's separate building consent and resource consent search pages.
 
@@ -22,7 +22,7 @@ You can also click a parcel on the map. A property can be linked directly with `
 | File | Purpose |
 | --- | --- |
 | `index.html` | Page markup. Loads the ArcGIS Maps SDK for JavaScript (4.34) from js.arcgis.com |
-| `js/config.js` | Service URLs, join fields, search fields, and labels for consent type and stage codes |
+| `js/config.js` | Service URLs, join fields, search fields, and labels for consent type, stage and decision codes. Types are grouped by code prefix (BC = building, RC = resource, anything else = other), and the raw type code is always shown |
 | `js/app.js` | Search, results, consents, map and deep-link logic |
 | `css/styles.css` | Styling to match www.taupodc.govt.nz (Prompt and Open Sans fonts, council colours). Responsive: a sidebar on desktop, stacked on narrow screens, with table rows shown as cards on phones |
 | `assets/` | Council logo, in a dark version for the header and a white version for the footer |

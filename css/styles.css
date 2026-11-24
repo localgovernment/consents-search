@@ -291,7 +291,12 @@ table.consents th {
 table.consents tbody tr:hover { background: #fafafa; }
 table.consents td.nowrap { white-space: nowrap; }
 .consent-id { font-weight: 700; color: var(--navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.consent-code {
+  display: block; font-size: .75rem; color: var(--text-strong); letter-spacing: .02em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
 .consent-type { display: block; font-size: .8125rem; color: var(--muted); }
+.decision { display: block; font-size: .8125rem; color: var(--muted); margin-top: 4px; }
 .consent-site { display: block; font-size: .8125rem; color: var(--muted); }
 .desc { min-width: 220px; color: var(--text-strong); }
 

@@ -26,6 +26,9 @@
     tabs: $("consent-tabs"),
     tabBuilding: $("tab-building"),
     tabResource: $("tab-resource"),
+    tabOther: $("tab-other"),
+    countOther: $("count-other"),
+    panelOther: $("panel-other"),
     countBuilding: $("count-building"),
     countResource: $("count-resource"),
     panelBuilding: $("panel-building"),
@@ -190,12 +193,13 @@
   function consentTypeInfo(code) {
     const known = CFG.consentTypes[code];
     if (known) return known;
-    const category = /^RC/i.test(code || "") ? "resource" : "building";
+    const category = /^RC/i.test(code || "") ? "resource" : /^BC/i.test(code || "") ? "building" : "other";
     return { label: code || "Unknown", category };
   }
 
-  function stageInfo(code) {
-    if (!code) return { label: "Unknown", tone: "neutral" };
+  // Badge shows the stage; if there's no stage, fall back to the overall status (D = Determined, ...)
+  function stageInfo(code, status) {
+    if (!code) return CFG.statuses[status] || { label: "Unknown", tone: "neutral" };
     return CFG.stages[code] || { label: code.charAt(0) + code.slice(1).toLowerCase(), tone: "neutral" };
   }
 
@@ -541,8 +545,10 @@
       els.tabs.hidden = true;
       els.panelBuilding.innerHTML = "";
       els.panelResource.innerHTML = "";
+      els.panelOther.innerHTML = "";
       els.panelBuilding.hidden = true;
       els.panelResource.hidden = true;
+      els.panelOther.hidden = true;
       setStatus(els.consentsStatus, "Sorry, consent information is not available right now. Please try again.", true);
       return;
     }
@@ -553,14 +559,19 @@
       (parseDate(y.CONSENT_LODGED_DATE) || 0) - (parseDate(x.CONSENT_LODGED_DATE) || 0) ||
       String(y.CONSENT_FILE_ID).localeCompare(String(x.CONSENT_FILE_ID)));
 
-    const building = rows.filter((r) => consentTypeInfo(r.CONSENT_APPLN_TYPE).category === "building");
-    const resource = rows.filter((r) => consentTypeInfo(r.CONSENT_APPLN_TYPE).category === "resource");
+    const cat = (r) => consentTypeInfo(r.CONSENT_APPLN_TYPE).category;
+    const building = rows.filter((r) => cat(r) === "building");
+    const resource = rows.filter((r) => cat(r) === "resource");
+    const other = rows.filter((r) => cat(r) === "other");
 
     els.countBuilding.textContent = building.length;
     els.countResource.textContent = resource.length;
+    els.countOther.textContent = other.length;
+    els.tabOther.hidden = !other.length;          // only shown when needed
     const hl = new Set(highlightIds.map((id) => String(id).toUpperCase()));
     els.panelBuilding.innerHTML = consentTable(building, "building", hl, markTerms);
     els.panelResource.innerHTML = consentTable(resource, "resource", hl, markTerms);
+    els.panelOther.innerHTML = consentTable(other, "other", hl, markTerms);
     renderSiteNames(property, rows);
 
     if (!rows.length) {
@@ -568,14 +579,16 @@
     } else {
       setStatus(els.consentsStatus,
         `${rows.length} ${rows.length === 1 ? "consent" : "consents"} found: ` +
-        `${building.length} building, ${resource.length} resource.`);
+        `${building.length} building, ${resource.length} resource` +
+        (other.length ? `, ${other.length} other.` : "."));
     }
     els.tabs.hidden = false;
     // Open the tab holding the first highlighted consent, else building (if any)
     const firstMatch = rows.find((r) => hl.has(String(r.CONSENT_FILE_ID).toUpperCase()));
+    const tabFor = { building: els.tabBuilding, resource: els.tabResource, other: els.tabOther };
     const tab = firstMatch
-      ? (consentTypeInfo(firstMatch.CONSENT_APPLN_TYPE).category === "resource" ? els.tabResource : els.tabBuilding)
-      : (building.length || !resource.length ? els.tabBuilding : els.tabResource);
+      ? tabFor[cat(firstMatch)]
+      : (building.length ? els.tabBuilding : resource.length ? els.tabResource : other.length ? els.tabOther : els.tabBuilding);
     selectTab(tab, false);
     return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector("tr.is-match") : null;
   }
@@ -612,13 +625,22 @@
     els.propertySites.hidden = false;
   }
 
+  // Decision outcome under the status badge, only when it says something the stage doesn't
+  function decisionNote(r, stage) {
+    const code = r.CONSENT_DECISION_TYPE_CODE;
+    if (!code) return "";
+    const label = CFG.decisions[code] || code;
+    if (label.toUpperCase() === stage.label.toUpperCase()) return "";
+    return `<span class="decision">Decision: ${escapeHtml(label)}</span>`;
+  }
+
   function consentTable(rows, kind, hl = new Set(), markTerms = []) {
     if (!rows.length) {
       return `<p class="none">No ${kind} consents were found for this property.</p>`;
     }
     const body = rows.map((r) => {
       const type = consentTypeInfo(r.CONSENT_APPLN_TYPE);
-      const stage = stageInfo(r.CONSENT_APPLN_STAGE_CODE);
+      const stage = stageInfo(r.CONSENT_APPLN_STAGE_CODE, r.CONSENT_STATUS);
       const lodged = formatDate(r.CONSENT_LODGED_DATE);
       const decided = formatDate(r.CONSENT_DECISION_DATE);
       const closedLabel = r.CONSENT_COMPLETED_DATE ? "Completed" : (r.CONSENT_LAPSED_DATE ? "Lapsed" : "");
@@ -627,16 +649,17 @@
       return `<tr${isMatch ? ' class="is-match"' : ""}>
         <td data-label="Consent">
           <span class="consent-id">${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</span>
-          <span class="consent-type" title="${escapeHtml(r.CONSENT_APPLN_TYPE)}">${escapeHtml(type.label)}</span>
+          ${r.CONSENT_APPLN_TYPE ? `<span class="consent-code">${escapeHtml(r.CONSENT_APPLN_TYPE)}</span>` : ""}
+          <span class="consent-type">${escapeHtml(type.label)}</span>
           ${isMatch ? '<span class="match-tag">Search match</span>' : ""}
         </td>
         <td data-label="Description" class="desc">
           ${escapeHtml(r.CONSENT_DESCRIPTION || "")}
           ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms)}</span>` : ""}
         </td>
-        <td data-label="Status"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span></td>
+        <td data-label="Status"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}</td>
         <td data-label="Lodged" class="nowrap">${lodged || "–"}</td>
-        <td data-label="Decision" class="nowrap">${decided || "–"}</td>
+        <td data-label="Determined" class="nowrap">${decided || "–"}</td>
         <td data-label="${closedLabel || "Completed / lapsed"}" class="nowrap">${closed ? `${closed}${closedLabel === "Lapsed" ? " (lapsed)" : ""}` : "–"}</td>
       </tr>`;
     }).join("");
@@ -644,13 +667,13 @@
       <caption class="visually-hidden">${kind === "building" ? "Building" : "Resource"} consents, newest first</caption>
       <thead><tr>
         <th scope="col">Consent</th><th scope="col">Description</th><th scope="col">Status</th>
-        <th scope="col">Lodged</th><th scope="col">Decision</th><th scope="col">Completed / lapsed</th>
+        <th scope="col">Lodged</th><th scope="col">Determined</th><th scope="col">Completed / lapsed</th>
       </tr></thead>
       <tbody>${body}</tbody></table></div>`;
   }
 
   // ---------------------------------------------------------------- tabs
-  const tabs = [els.tabBuilding, els.tabResource];
+  const tabs = [els.tabBuilding, els.tabResource, els.tabOther];
   function selectTab(tab, focus = true) {
     for (const t of tabs) {
       const on = t === tab;
@@ -660,12 +683,14 @@
     }
     if (focus) tab.focus();
   }
-  tabs.forEach((t, i) => {
+  tabs.forEach((t) => {
     t.addEventListener("click", () => selectTab(t));
     t.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
         e.preventDefault();
-        selectTab(tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length]);
+        const shown = tabs.filter((x) => !x.hidden);   // skip the Other tab when it's hidden
+        const i = shown.indexOf(t);
+        selectTab(shown[(i + (e.key === "ArrowRight" ? 1 : shown.length - 1)) % shown.length]);
       }
     });
   });
@@ -795,6 +820,7 @@
     els.tabs.hidden = true;
     els.panelBuilding.innerHTML = "";
     els.panelResource.innerHTML = "";
+    els.panelOther.innerHTML = "";
     setStatus(els.consentsStatus, "");
     document.title = DEFAULT_TITLE;
   }
