@@ -32,12 +32,20 @@
     </div>
   </header>
 
-  <div class="beta-banner" role="note" aria-label="Beta notice">
+  <div class="beta-banner" id="beta-banner" role="note" aria-label="Beta notice">
     <div class="wrap">
       <span class="beta-tag">Beta</span>
       <p><strong>This page uses test data.</strong> It is a work in progress. Consent records shown here may be incomplete or inaccurate. Do not rely on this information for property or consent decisions.</p>
+      <button type="button" class="beta-close" aria-label="Dismiss beta notice" title="Dismiss">&times;</button>
     </div>
   </div>
+  <!-- Closing hides the notice for this visit only; it shows again on reload -->
+  <script>
+    document.querySelector("#beta-banner .beta-close").addEventListener("click", function () {
+      document.getElementById("beta-banner").hidden = true;
+      document.getElementById("search-input").focus();
+    });
+  </script>
 
   <div class="wrap page-intro">
     <nav class="breadcrumb" aria-label="Breadcrumb">

@@ -78,7 +78,15 @@ a:hover { color: var(--navy); }
 /* ---------------------------------------------------------- beta notice */
 .beta-banner { background: var(--warn-bg); color: var(--warn-fg); border-bottom: 3px solid #e0a020; }
 .beta-banner .wrap { display: flex; gap: 12px; align-items: flex-start; padding-top: 12px; padding-bottom: 12px; }
-.beta-banner p { margin: 0; max-width: 90ch; }
+.beta-banner p { margin: 0; max-width: 90ch; flex: 1; }
+.beta-banner[hidden] { display: none; }
+.beta-close {
+  flex: none; margin: -6px -8px 0 auto;
+  width: 36px; height: 36px; padding: 0;
+  font-size: 1.75rem; line-height: 1; color: var(--warn-fg);
+  background: transparent; border: 0; border-radius: 50%; cursor: pointer;
+}
+.beta-close:hover { background: rgba(122, 74, 0, .12); }
 .beta-tag {
   flex: none; background: #7a4a00; color: #fff; font-weight: 700; font-size: .8125rem;
   text-transform: uppercase; letter-spacing: .05em; padding: 2px 10px; border-radius: 999px; margin-top: 2px;
