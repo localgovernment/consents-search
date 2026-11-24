@@ -51,6 +51,24 @@ The consents service holds test data, so counts and some records differ from the
 
 ## Before going live
 
-- Host it on the council website instead of GitHub Pages.
+### Deploy to the ArcGIS Web Adaptor web servers
+Copy the app's files to the web servers behind the **external and internal ArcGIS Web Adaptors**. Both serve the same URL, so the files must go on **both** servers and be kept identical:
+- `index.html`
+- `css/`
+- `js/`
+- `assets/`
+
+Docs files (`README.md`, `FOLLOW-UPS.md`, `LICENSE`) aren't needed. Once it's there, it replaces the GitHub Pages copy.
+
+On every update, copy the changed files to both servers, and bump the `?v=` version stamp in `index.html` so browsers fetch the new CSS and JS.
+
+### Repoint the existing website links
+Replace the old search links on the council website with the link to this app on the GIS web adaptor servers:
+- **Resource consents:** on https://www.taupodc.govt.nz/rules-regulations-and-licenses/resource-consents, the "Search for your resource consent" link.
+- **Building consents:** on https://www.taupodc.govt.nz/rules-regulations-and-licenses/building-and-renovations, the "Search for your building consent" link.
+
+The old search pages themselves (`…/resource-consents/search-for-your-resource-consent` and `…/building-and-renovations/search-for-your-building-consent`) could also redirect to the new app, so bookmarks and search engine results still work.
+
+### Other
 - No code review and no automated tests.
 - No formal accessibility audit.
