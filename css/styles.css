@@ -105,7 +105,7 @@ a:hover { color: var(--navy); }
 .breadcrumb [aria-current] { color: var(--muted); }
 
 .page-intro h1 { font-size: 3rem; line-height: 1.05; margin: 0 0 16px; max-width: 22ch; }
-.page-intro .lede { margin: 0; max-width: 75ch; font-size: 1.0625rem; }
+.page-intro .lede { margin: 0; max-width: 54rem; font-size: 1.0625rem; text-wrap: pretty; }   /* two lines on desktop, no lone last word */
 
 @media (max-width: 640px) {
   .page-intro { padding-top: 20px; padding-bottom: 20px; }
