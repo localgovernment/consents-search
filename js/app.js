@@ -450,7 +450,9 @@
 
   // highlightIds: consent file IDs to highlight (defaults to the consents this
   // result was found through, if any).
-  async function selectProperty(attrs, { updateUrl = true, highlightIds } = {}) {
+  // scrollToTop: on desktop, bring the search panel and map to the top of the screen
+  // (user selections; not when a property opens from a link or the Back button).
+  async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true } = {}) {
     selectedValuation = attrs.valuation_id;
     if (!highlightIds) highlightIds = (attrs._consentMatches || []).map((m) => m.fileId);
     const markTerms = attrs._consentMatches ? currentTerms : [];
@@ -469,6 +471,11 @@
     }
 
     renderPropertySummary(attrs);
+    const desktop = window.matchMedia("(min-width: 861px)").matches;
+    if (scrollToTop && desktop) {
+      const top = document.querySelector("main.layout").getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
     if (detailController) detailController.abort();
     detailController = new AbortController();
     const { signal } = detailController;
@@ -478,7 +485,7 @@
 
     if (matchRow) {
       matchRow.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if (window.matchMedia("(max-width: 860px)").matches) {
+    } else if (!desktop) {
       els.detailContent.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
@@ -820,7 +827,7 @@
           loadConsentCounts([attrs]);
         }
         const consentParam = params.get("consent");
-        selectProperty(attrs, { updateUrl: false, highlightIds: consentParam ? consentParam.split(",") : [] });
+        selectProperty(attrs, { updateUrl: false, scrollToTop: false, highlightIds: consentParam ? consentParam.split(",") : [] });
       } else {
         setStatus(els.resultsStatus, `No property found with valuation number ${v}.`, true);
       }
