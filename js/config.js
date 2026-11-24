@@ -44,33 +44,34 @@ window.CONSENTS_SEARCH_CONFIG = {
   // anything else = "other" (an Other tab appears only when needed).
   // The raw code is always shown above the label.
   consentTypes: {
-    BCCONSENT: { label: "Building consent", category: "building" },
-    BCCOA: { label: "Certificate of acceptance", category: "building" },
-    BCEXEMPT: { label: "Exemption from building consent", category: "building" },
-    BCPIM: { label: "Project information memorandum (PIM)", category: "building" },
-    BCICSNEW: { label: "Compliance schedule – new", category: "building" },
-    BCICSAMD: { label: "Compliance schedule – amendment", category: "building" },
-    BCICPU: { label: "Certificate for public use", category: "building" },
-    BCISWMP: { label: "Swimming pool inspection", category: "building" },
-    RCCONSENT: { label: "Resource consent", category: "resource" },
-    RCLANDUSE: { label: "Land use consent", category: "resource" },
-    RCSUBDIVN: { label: "Subdivision consent", category: "resource" },
-    RCCERCOMP: { label: "Certificate of compliance", category: "resource" },
-    RCEXTTIME: { label: "Extension of time", category: "resource" },
-    RCOUTLINE: { label: "Outline plan", category: "resource" },
-    RCRIGHTWAY: { label: "Right of way approval", category: "resource" },
-    RCVARNCOND: { label: "Variation of conditions", category: "resource" },
-    // Added with the full dataset (labels are best guesses until confirmed)
-    BCEXTTIME: { label: "Extension of time", category: "building" },
-    BCPIMGF: { label: "PIM – granny flat", category: "building" },
-    BCREACTIV: { label: "Reactivation of building consent", category: "building" },
-    RC223224C: { label: "Section 223 / 224(c) certificate", category: "resource" },
-    RCBLDLNRES: { label: "Building line restriction cancellation", category: "resource" },
-    RCCEREXUSE: { label: "Certificate of existing use", category: "resource" },
-    RCCOMBINED: { label: "Combined land use and subdivision", category: "resource" },
-    RCDEEMBDRY: { label: "Deemed permitted boundary activity", category: "resource" },
-    RCPOSTSUB: { label: "Post-subdivision", category: "resource" },
-    RCS224CER: { label: "Section 224(c) certificate", category: "resource" }
+    // Building – names as shown in the council's consenting system
+    BCCOA: { label: "Certificate of Acceptance", category: "building" },
+    BCCONSENT: { label: "Building Consents", category: "building" },
+    BCEXEMPT: { label: "Exempt Building Work", category: "building" },
+    BCEXTTIME: { label: "Extension of Time to Commence or Complete Building Work", category: "building" },
+    BCICPU: { label: "Certificate for Public Use (CPU)", category: "building" },
+    BCICSAMD: { label: "Compliance Schedule - Amendment (Form 11)", category: "building" },
+    BCICSNEW: { label: "Compliance Schedule - New", category: "building" },
+    BCISWMP: { label: "Registration of Swimming Pools", category: "building" },
+    BCPIM: { label: "Project Information Memorandum", category: "building" },
+    BCPIMGF: { label: "PIM - Granny Flat", category: "building" },
+    BCREACTIV: { label: "Re-activate", category: "building" },
+    // Resource
+    RC223224C: { label: "Combined 223/224C", category: "resource" },
+    RCBLDLNRES: { label: "Building Line Restriction", category: "resource" },
+    RCCERCOMP: { label: "Certificate of Compliance (Section 139)", category: "resource" },
+    RCCEREXUSE: { label: "Existing Use Certificate (Section 139A)", category: "resource" },
+    RCCOMBINED: { label: "Combined Land Use and Subdivision Consent", category: "resource" },
+    RCCONSENT: { label: "Resource Consent", category: "resource" },   // not in the current data; unconfirmed
+    RCDEEMBDRY: { label: "Deemed Permitted Boundary Activity (Section 87BA)", category: "resource" },
+    RCEXTTIME: { label: "Extension of Time (Section 125)", category: "resource" },
+    RCLANDUSE: { label: "Land Use Consent", category: "resource" },
+    RCOUTLINE: { label: "Outline Plan", category: "resource" },
+    RCPOSTSUB: { label: "Post-Subdivision", category: "resource" },
+    RCRIGHTWAY: { label: "Right of Way", category: "resource" },       // assumed; to be confirmed
+    RCS224CER: { label: "Compliance Certificate (Section 224)", category: "resource" },
+    RCSUBDIVN: { label: "Subdivision Consent", category: "resource" },
+    RCVARNCOND: { label: "Variation to Consent Notice Condition (Section 221)", category: "resource" }
   },
 
   // CONSENT_APPLN_STAGE_CODE -> label shown as the consent status, with a tone for the badge colour
