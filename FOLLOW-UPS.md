@@ -52,6 +52,26 @@ RC2026/260315 is typed `RCPOSTSUB` (Post-Subdivision), but its description is a 
 ### Legal descriptions may be truncated
 `m_property_legal_desc` in the property layer holds 60 characters, and about 400 properties are at or near that limit.
 
+### CiAnywhere data cleaning suggestions (search quality)
+*Logged 2026-11-24*
+
+The page ignores commas and extra spaces when searching, but the ArcGIS server can't clean the data itself (its SQL has no `REPLACE`). So the page tries a few spellings of the search instead: as typed, without commas, and with ", " at one word gap. That covers the common cases but not all of them. Cleaning the data in the CiAnywhere → GIS export would make search exact, simpler and faster:
+
+1. **Add tidied search fields** to the property layer and consents table, e.g. `address_search`, `legal_search` and `site_search`: uppercase, commas removed, single spaces, trimmed, macrons removed (ō → o). The page would then search those fields with the cleaned text. That handles any number of commas and any spacing, and the spelling workaround could be removed. **This is the main recommendation**, especially as property addresses are expected to include commas in future.
+2. **Tidy consent site names** at source:
+   - 18,244 rows have a space before the comma and none after (e.g. " Storey Place ,Taupo"),
+   - 487 rows have double spaces,
+   - some have leading spaces.
+   The page tidies these for display, but searches against the raw text.
+3. **Trim property addresses:** 4 addresses have leading or trailing spaces.
+4. **Make address formats consistent** between property addresses and consent site names. For example, the site name "463 Broadlands Road, Taupo Ward" doesn't match the rating address "463 Broadlands Road Taupo".
+5. **Include unit / sub-addresses** (see "Unit and sub-addresses missing" above).
+
+Limits of the current page-side workaround, which the tidied fields would remove:
+- **One comma only:** a full address typed without commas won't match data with two commas (e.g. "Unit 1, 102 Lakewood Drive, Taupo"). Partial searches still do.
+- **Only the ", " format:** a comma typed with a space before it and none after (" ,Taupo") is matched only if it's typed that way.
+- **Slower long searches:** long searches check more spellings, so they can take slightly longer.
+
 ### Source data from CiAnywhere is out of date (test data)
 *Logged 2026-11-24*
 
@@ -86,6 +106,7 @@ Several of the data issues above may also partly come from stale or test extract
 - **Speed:** searches take about 1 to 3 seconds. "Contains" searches (`LIKE '%…%'`) can't use the indexes.
 - **Result limit:** results are capped at 100 properties (and 2,000 consent rows per search).
 - **Phrase search:** word order matters, and abbreviations like Rd, Tce and Hwy don't match Road, Terrace and Highway. They could be expanded.
+- **Commas and spaces:** these are ignored, but only via a workaround (one comma per spelling). See "CiAnywhere data cleaning suggestions".
 - **Caching:** GitHub Pages caches `index.html` for up to 10 minutes. CSS and JS are version-stamped (`?v=`), so bump the stamp on every change.
 - **ArcGIS SDK:** the page uses 4.34, the last 4.x release, and should move to 5.x. The keyless Esri basemap could change.
 

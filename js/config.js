@@ -30,6 +30,10 @@ window.CONSENTS_SEARCH_CONFIG = {
   consentSearchFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME", "PROP_Valuation_Reference_Number"],
   maxConsentMatches: 2000,
 
+  // Text fields that can contain commas. Searches ignore commas and extra spaces;
+  // on these fields that means also trying ", " at each word gap ("street, taupo").
+  commaFields: ["address", "m_property_legal_desc", "m_supplementary_legal_desc", "CONSENT_SITE_NAME"],
+
   minSearchLength: 3,
   searchDebounceMs: 300,
   maxResults: 100,

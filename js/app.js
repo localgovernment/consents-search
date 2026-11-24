@@ -149,11 +149,35 @@
     return phrase ? [phrase] : [];
   }
 
-  // The phrase must appear in at least one search field.
+  // Commas and extra spaces don't matter: "1 Smith Street, Taupo" ~ "1 SMITH STREET TAUPO"
+  function cleanText(s) {
+    return normalise(String(s || "")).toUpperCase().replace(/,/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  // The server can't strip commas from the data (no REPLACE in its SQL), so search for
+  // several spellings of the phrase at once: as typed, without commas, and without
+  // commas but with ", " at one word gap ("1 SMITH STREET, TAUPO"). One comma only.
+  const MAX_COMMA_GAPS = 8;
+  function phraseVariants(phrase) {
+    const cleaned = cleanText(phrase);
+    const out = new Set([phrase, cleaned]);
+    const words = cleaned.split(" ");
+    for (let i = 1; i < words.length && i <= MAX_COMMA_GAPS; i++) {
+      out.add(`${words.slice(0, i).join(" ")}, ${words.slice(i).join(" ")}`);
+    }
+    return [...out].filter(Boolean);
+  }
+
+  // Any spelling of the phrase must appear in at least one search field. The comma
+  // variants are only checked on text fields that contain commas (address, legal
+  // description, site name) - IDs never do - which keeps the query quick.
   function buildWhere(terms, fields = CFG.searchFields) {
     return terms.map((t) => {
-      const like = sqlString("%" + t + "%");
-      return "(" + fields.map((f) => `UPPER(${f}) LIKE ${like}`).join(" OR ") + ")";
+      const all = phraseVariants(t);
+      const basic = [...new Set([t, cleanText(t)])].filter(Boolean);
+      const conds = fields.flatMap((f) =>
+        (CFG.commaFields.includes(f) ? all : basic).map((v) => `UPPER(${f}) LIKE ${sqlString("%" + v + "%")}`));
+      return "(" + conds.join(" OR ") + ")";
     }).join(" AND ");
   }
 
@@ -165,17 +189,23 @@
   function compareKey(s) {
     return normalise(String(s || "")).toUpperCase().replace(/[^A-Z0-9]/g, "");
   }
+  // Same rule as the search: ignore commas and extra spaces on both sides
   function contains(value, phrase) {
-    return !!value && normalise(String(value)).toUpperCase().includes(phrase);
+    return !!value && cleanText(value).includes(cleanText(phrase));
   }
 
   function highlight(text, terms) {
     const safe = escapeHtml(text);
     if (!terms.length || !text) return safe;
+    // Words of the phrase, allowing any commas/spaces between them in the text
     const pattern = terms
-      .map((t) => escapeHtml(t).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .map((t) => cleanText(t).split(" ")
+        .map((w) => escapeHtml(w).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("[\\s,]+"))
+      .filter(Boolean)
       .sort((a, b) => b.length - a.length)
       .join("|");
+    if (!pattern) return safe;
     return safe.replace(new RegExp(`(${pattern})`, "gi"), "<mark>$1</mark>");
   }
 
@@ -406,9 +436,9 @@
     const rank = (r) => {
       const v = (r.valuation_id || "").toUpperCase();
       const ids = (r._consentMatches || []).map((m) => String(m.fileId || "").toUpperCase());
-      const addr = normalise(r.address || "").toUpperCase();
+      const addr = cleanText(r.address);
       if (v === first || ids.includes(first)) return 0;
-      if (v.startsWith(first) || ids.some((id) => id.startsWith(first)) || addr.startsWith(first)) return 1;
+      if (v.startsWith(first) || ids.some((id) => id.startsWith(first)) || addr.startsWith(cleanText(first))) return 1;
       return 2;
     };
     const collator = new Intl.Collator("en-NZ", { numeric: true, sensitivity: "base" });
