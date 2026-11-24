@@ -25,7 +25,9 @@ window.CONSENTS_SEARCH_CONFIG = {
 
   // Consent fields also searched. A match here returns the property the
   // consent belongs to, with the matching consent shown under its address.
-  consentSearchFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME"],
+  // The consent's own valuation number is included so consents on superseded
+  // valuation numbers (no longer in the property layer) can still be found.
+  consentSearchFields: ["CONSENT_FILE_ID", "CONSENT_SITE_NAME", "PROP_Valuation_Reference_Number"],
   maxConsentMatches: 2000,
 
   minSearchLength: 3,

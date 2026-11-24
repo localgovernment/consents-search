@@ -339,7 +339,8 @@
           fileId: c.CONSENT_FILE_ID,
           site: tidySiteName(c.CONSENT_SITE_NAME),
           type: c.CONSENT_APPLN_TYPE,
-          on: contains(c.CONSENT_FILE_ID, phrase) ? "id" : "site"
+          valuation: v || "",
+          on: contains(c.CONSENT_FILE_ID, phrase) ? "id" : contains(c.CONSENT_SITE_NAME, phrase) ? "site" : "valuation"
         };
         if (!out.byConsent.has(match.fileId)) out.byConsent.set(match.fileId, { match, vals: new Set() });
         if (!v) continue;
@@ -367,7 +368,7 @@
       out.push({
         _unlinked: true,
         _consentId: match.fileId,
-        _valuationNote: v.length ? `${v[0]} (no matching property)` : "Not specified",
+        _valuationNote: v.length ? `${v.find((x) => x.toUpperCase().includes(phrase)) || v[0]} (no matching property)` : "Not specified",
         _consentMatches: [match],
         _ownMatch: false
       });
@@ -456,7 +457,7 @@
             <span>No linked property</span>
             <span class="badge-count">1 consent</span>
           </span>
-          <span class="result-meta">Valuation <span class="val">${escapeHtml(r._valuationNote)}</span></span>
+          <span class="result-meta">Valuation <span class="val">${highlight(r._valuationNote, terms)}</span></span>
           ${consentMatchLine(r._consentMatches, terms)}`;
         continue;
       }
@@ -481,6 +482,8 @@
     const first = matches.find((m) => m.on === "id") || matches[0];
     const text = first.on === "id"
       ? `Consent ${highlight(first.fileId, terms)}`
+      : first.on === "valuation"
+      ? `Consent ${escapeHtml(first.fileId)} on valuation ${highlight(first.valuation, terms)}`
       : `Consent site: ${highlight(first.site, terms)}`;
     const more = ids.length > 1 ? ` <span class="more">+${ids.length - 1} more</span>` : "";
     const title = matches.map((m) => `${m.fileId} – ${m.site}`).join("\n");
