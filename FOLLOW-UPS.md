@@ -52,8 +52,28 @@ RC2026/260315 is typed `RCPOSTSUB` (Post-Subdivision), but its description is a 
 ### Legal descriptions may be truncated
 `m_property_legal_desc` in the property layer holds 60 characters, and about 400 properties are at or near that limit.
 
-### Test data
-The consents service holds test data, so counts and some records differ from the council's system. The beta banner on the page says so.
+### Source data from CiAnywhere is out of date (test data)
+*Logged 2026-11-24*
+
+The CSV extracts from CiAnywhere that feed this app and the GIS haven't been refreshed for a while, so they may not reflect production data yet. They're in `\\virapp05\cia\in\gis`:
+
+| File | Feeds | Last modified | Size |
+| --- | --- | --- | --- |
+| `building_and_resource_consents.csv` | This app's consents table (`regulatory/consents`) | 21/11/2026 10:21 am | 48,719 KB |
+| `ra_properties.csv` | GIS in general (rating / property) | 19/11/2026 11:01 pm | 804 KB |
+| `ra_valuation.csv` | GIS in general (valuations) | 19/11/2026 11:01 pm | 634 KB |
+| `rg_property_records.csv` | GIS in general (property records) | 19/11/2026 11:01 pm | 4,423 KB |
+
+Signs of this already seen on the page:
+- RC2026/CE260018 is Lodged in the data but Current in CiAnywhere.
+- The Q and A status records can't be found in CiAnywhere.
+- Counts differ from CiAnywhere.
+
+Several of the data issues above may also partly come from stale or test extracts. The beta banner on the page warns that it uses test data.
+
+**To do:**
+- **Refresh schedule:** set up a regular refresh of all four extracts from production CiAnywhere (e.g. nightly), and make sure the services republish from them.
+- **Re-check the data issues:** once production data is flowing, re-check the issues in this section, and remove the beta banner when the data can be relied on.
 
 ## Waiting on information
 
