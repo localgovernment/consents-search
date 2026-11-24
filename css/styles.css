@@ -278,6 +278,7 @@ table.consents tr.is-match, table.consents tr.is-match:hover { background: #fff8
   border: 1px solid var(--border);
 }
 .facts div { min-width: 0; }
+.facts div:only-child { grid-column: 1 / -1; }   /* a single fact (e.g. no linked property) uses the full width */
 .facts dt { font-size: .8125rem; color: var(--muted); }
 .facts dd { margin: 0; color: var(--text-strong); font-weight: 600; overflow-wrap: anywhere; }
 
