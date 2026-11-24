@@ -134,6 +134,12 @@ a:hover { color: var(--navy); }
 /* clip (not hidden) so sticky content inside still sticks to the page */
 .detail-panel { background: var(--surface); overflow: hidden; overflow: clip; }
 
+/* Desktop: always tall enough to scroll the search panel and map to the top of
+   the screen (after selecting a property, or resetting with Home / ×) */
+@media (min-width: 861px) {
+  .layout { min-height: calc(100vh - 16px); }
+}
+
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; gap: 20px; }
   .search-panel { position: static; max-height: none; }

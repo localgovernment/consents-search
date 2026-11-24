@@ -100,12 +100,16 @@
   function goHome() {
     // Focus first, while still inside the tap/click: mobile browsers (iOS in
     // particular) only allow focus - and show the keyboard - during the gesture.
-    els.input.focus();
-    if (window.matchMedia("(max-width: 860px)").matches) {
-      els.input.scrollIntoView({ block: "center" });   // search box sits above the map on phones
-    }
+    els.input.focus({ preventScroll: true });
     resetAll();
+    scrollToWorkArea();     // same position as after selecting a property
     view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600 }).catch(() => {});
+  }
+
+  // Search panel (and map, on desktop) at the top of the screen; the header and intro scroll away.
+  function scrollToWorkArea() {
+    const top = document.querySelector("main.layout").getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }
   homeButton.addEventListener("click", goHome);
   view.ui.add(homeButton, "top-left");
@@ -472,10 +476,7 @@
 
     renderPropertySummary(attrs);
     const desktop = window.matchMedia("(min-width: 861px)").matches;
-    if (scrollToTop && desktop) {
-      const top = document.querySelector("main.layout").getBoundingClientRect().top + window.scrollY - 16;
-      window.scrollTo({ top, behavior: "smooth" });
-    }
+    if (scrollToTop && desktop) scrollToWorkArea();
     if (detailController) detailController.abort();
     detailController = new AbortController();
     const { signal } = detailController;
