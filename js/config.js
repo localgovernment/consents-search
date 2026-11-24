@@ -111,18 +111,19 @@ window.CONSENTS_SEARCH_CONFIG = {
     S: { label: "Suspended", tone: "warn" }
   },
 
-  // CONSENT_DECISION_TYPE_CODE -> label, shown under the status when it adds
-  // something (e.g. "Granted" under "Issued"). Codes not listed show as-is.
+  // CONSENT_DECISION_TYPE_CODE -> label and colour, shown as an outlined pill
+  // under the status when it adds something (e.g. "Granted" under "Issued").
+  // Codes not listed show as-is in grey.
   decisions: {
-    GRANTED: "Granted",
-    APPROVED: "Approved",
-    ALLOWED: "Allowed",
-    ISSUED: "Issued",
-    COMPLETED: "Completed",
-    DECLINED: "Declined",
-    REFUSED: "Refused",
-    LAPSED: "Lapsed",
-    EXPIRED: "Expired",
-    SUSPENDED: "Suspended"
+    GRANTED: { label: "Granted", tone: "good" },
+    APPROVED: { label: "Approved", tone: "good" },
+    ALLOWED: { label: "Allowed", tone: "good" },
+    ISSUED: { label: "Issued", tone: "good" },
+    COMPLETED: { label: "Completed", tone: "good" },
+    DECLINED: { label: "Declined", tone: "bad" },
+    REFUSED: { label: "Refused", tone: "bad" },
+    LAPSED: { label: "Lapsed", tone: "warn" },
+    EXPIRED: { label: "Expired", tone: "warn" },
+    SUSPENDED: { label: "Suspended", tone: "warn" }
   }
 };

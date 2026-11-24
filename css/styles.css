@@ -296,7 +296,8 @@ table.consents td.nowrap { white-space: nowrap; }
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 .consent-type { display: block; font-size: .8125rem; color: var(--muted); }
-.decision { display: block; font-size: .8125rem; color: var(--muted); margin-top: 4px; }
+/* Stage badge with the decision pill underneath, left edges aligned */
+.status-stack { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 5px; }
 .consent-site { display: block; font-size: .8125rem; color: var(--muted); }
 .desc { min-width: 220px; color: var(--text-strong); }
 
@@ -309,6 +310,8 @@ table.consents td.nowrap { white-space: nowrap; }
 .status.info { background: var(--info-bg); color: var(--info-fg); }
 .status.warn { background: var(--warn-bg); color: var(--warn-fg); }
 .status.bad  { background: var(--bad-bg);  color: var(--bad-fg); }
+/* Decision: same pill, outlined instead of filled */
+.status.decision { background: #fff; box-shadow: inset 0 0 0 1px currentColor; font-weight: 600; }
 
 .none { color: var(--muted); padding: 8px 0; margin: 0; }
 

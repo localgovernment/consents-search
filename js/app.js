@@ -626,12 +626,14 @@
   }
 
   // Decision outcome under the status badge, only when it says something the stage doesn't
+  // Outlined pill under the stage badge; "Decision:" is in the tooltip and for screen readers
   function decisionNote(r, stage) {
     const code = r.CONSENT_DECISION_TYPE_CODE;
     if (!code) return "";
-    const label = CFG.decisions[code] || code;
-    if (label.toUpperCase() === stage.label.toUpperCase()) return "";
-    return `<span class="decision">Decision: ${escapeHtml(label)}</span>`;
+    const d = CFG.decisions[code] || { label: code, tone: "neutral" };
+    if (d.label.toUpperCase() === stage.label.toUpperCase()) return "";
+    return `<span class="status decision ${d.tone}" title="Decision: ${escapeHtml(d.label)}">` +
+      `<span class="visually-hidden">Decision: </span>${escapeHtml(d.label)}</span>`;
   }
 
   function consentTable(rows, kind, hl = new Set(), markTerms = []) {
@@ -657,7 +659,7 @@
           ${escapeHtml(r.CONSENT_DESCRIPTION || "")}
           ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms)}</span>` : ""}
         </td>
-        <td data-label="Status"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}</td>
+        <td data-label="Status"><span class="status-stack"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}</span></td>
         <td data-label="Lodged" class="nowrap">${lodged || "–"}</td>
         <td data-label="Determined" class="nowrap">${decided || "–"}</td>
         <td data-label="${closedLabel || "Completed / lapsed"}" class="nowrap">${closed ? `${closed}${closedLabel === "Lapsed" ? " (lapsed)" : ""}` : "–"}</td>
