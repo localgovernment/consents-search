@@ -55,7 +55,7 @@ RC2026/260315 is typed `RCPOSTSUB` (Post-Subdivision), but its description is a 
 ### CiAnywhere data cleaning suggestions (search quality)
 *Logged 2026-11-24*
 
-The page ignores commas and extra spaces when searching, but the ArcGIS server can't clean the data itself (its SQL has no `REPLACE`). So the page tries a few spellings of the search instead: as typed, without commas, and with ", " at one word gap. That covers the common cases but not all of them. Cleaning the data in the CiAnywhere → GIS export would make search exact, simpler and faster:
+The page ignores commas and extra spaces when searching, but the ArcGIS server can't clean the data itself (its SQL has no `REPLACE`). So the page tries a few spellings of the search instead: as typed and without commas (all fields), and, **for the property address only**, with ", " at one word gap. So a search without commas doesn't match consent site names or legal descriptions that contain commas, e.g. "1 ngaio place wairakei" doesn't find the site name "1 Ngaio Place, Wairakei". Those fields could be added to `commaFields` at a small speed cost. Cleaning the data in the CiAnywhere → GIS export would make search exact, simpler and faster:
 
 1. **Add tidied search fields** to the property layer and consents table, e.g. `address_search`, `legal_search` and `site_search`: uppercase, commas removed, single spaces, trimmed, macrons removed (ō → o). The page would then search those fields with the cleaned text. That handles any number of commas and any spacing, and the spelling workaround could be removed. **This is the main recommendation**, especially as property addresses are expected to include commas in future.
 2. **Tidy consent site names** at source:
@@ -106,7 +106,7 @@ Several of the data issues above may also partly come from stale or test extract
 - **Speed:** searches take about 1 to 3 seconds. "Contains" searches (`LIKE '%…%'`) can't use the indexes.
 - **Result limit:** results are capped at 100 properties (and 2,000 consent rows per search).
 - **Phrase search:** word order matters, and abbreviations like Rd, Tce and Hwy don't match Road, Terrace and Highway. They could be expanded.
-- **Commas and spaces:** these are ignored, but only via a workaround (one comma per spelling). See "CiAnywhere data cleaning suggestions".
+- **Commas and spaces:** extra spaces and typed commas are ignored. Commas in the data are only handled for the property address (one comma). See "CiAnywhere data cleaning suggestions".
 - **Caching:** GitHub Pages caches `index.html` for up to 10 minutes. CSS and JS are version-stamped (`?v=`), so bump the stamp on every change.
 - **ArcGIS SDK:** the page uses 4.34, the last 4.x release, and should move to 5.x. The keyless Esri basemap could change.
 
