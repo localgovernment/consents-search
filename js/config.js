@@ -46,7 +46,7 @@ window.CONSENTS_SEARCH_CONFIG = {
   consentTypes: {
     // Building – names as shown in the council's consenting system
     BCCOA: { label: "Certificate of Acceptance", category: "building" },
-    BCCONSENT: { label: "Building Consents", category: "building" },
+    BCCONSENT: { label: "Building Consent", category: "building" },
     BCEXEMPT: { label: "Exempt Building Work", category: "building" },
     BCEXTTIME: { label: "Extension of Time to Commence or Complete Building Work", category: "building" },
     BCICPU: { label: "Certificate for Public Use (CPU)", category: "building" },
