@@ -100,6 +100,7 @@
   function goHome() {
     resetAll();
     view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600 }).catch(() => {});
+    els.input.focus();      // ready for the next search
   }
   homeButton.addEventListener("click", goHome);
   view.ui.add(homeButton, "top-left");
@@ -777,10 +778,7 @@
     }
   });
   // × in the search box: same as the map Home button (clear everything, reset the map)
-  els.clear.addEventListener("click", () => {
-    goHome();
-    els.input.focus();
-  });
+  els.clear.addEventListener("click", goHome);
 
   // Deep link: ?valuation=0730200400 (also supports ?q=search text)
   async function loadFromUrl() {
