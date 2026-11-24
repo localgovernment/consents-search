@@ -7,7 +7,7 @@
 > **Written with Claude.** The code in this repository was written with [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant, at the direction of council staff. It has **not** been independently code reviewed.
 
 > [!WARNING]
-> **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 377 consent records across about 37 properties), so most properties will show no consents, and the records that do appear may not be complete or accurate. Do not rely on this page for property or consent decisions.
+> **Work in progress, using test data.** This is an early MVP and is not ready for public use. The consents service it reads from currently holds **test data** (about 95,000 consent records), which may not be complete or accurate. Do not rely on this page for property or consent decisions.
 
 One page that replaces Taupō District Council's separate building consent and resource consent search pages.
 
@@ -30,7 +30,7 @@ You can also click a parcel on the map. A property can be linked directly with `
 ## Services
 
 - `property/Rateable_Property/FeatureServer/0` (polygons, NZTM)
-- `regulatory/consents/FeatureServer/0` (table)
+- `regulatory/consents/FeatureServer/0` (table). Indexed on `PROP_Valuation_Reference_Number` and `CONSENT_FILE_ID`. The date fields hold New Zealand times stored as UTC, so the page shows them as stored (in UTC), and adds the time only when it isn't midnight.
 
 Both are public and send CORS headers, so no API key or proxy is needed. The basemap is Esri `topo-vector`, which also needs no key.
 

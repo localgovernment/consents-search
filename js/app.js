@@ -166,17 +166,25 @@
 
   // Dates come through as strings like "28-Jan-1993 00:00:00".
   const MONTHS = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
+  // Consent dates are real date fields (epoch milliseconds). The values are New
+  // Zealand wall-clock times stored as UTC, so they're displayed in UTC to show
+  // them exactly as stored. Older text dates ("28-Jan-1993 00:00:00") still parse.
   function parseDate(s) {
-    if (!s) return null;
+    if (s === null || s === undefined || s === "") return null;
+    if (typeof s === "number") return new Date(s);
     const m = /^(\d{1,2})-([A-Za-z]{3})-(\d{4})/.exec(s);
-    if (m) return new Date(+m[3], MONTHS[m[2].toUpperCase()], +m[1]);
+    if (m) return new Date(Date.UTC(+m[3], MONTHS[m[2].toUpperCase()], +m[1]));
     const d = new Date(s);
     return isNaN(d) ? null : d;
   }
-  const dateFmt = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "short", year: "numeric" });
+  const dateFmt = new Intl.DateTimeFormat("en-NZ", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  const timeFmt = new Intl.DateTimeFormat("en-NZ", { hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+  // Date only, plus the time when one is recorded (i.e. not midnight)
   function formatDate(s) {
     const d = parseDate(s);
-    return d ? dateFmt.format(d) : "";
+    if (!d) return "";
+    const hasTime = d.getUTCHours() || d.getUTCMinutes();
+    return hasTime ? `${dateFmt.format(d)}, ${timeFmt.format(d)}` : dateFmt.format(d);
   }
 
   function consentTypeInfo(code) {
@@ -253,7 +261,9 @@
       // were only found through a consent.
       const rows = fs.features.map((f) => f.attributes);
       const byValuation = new globalThis.Map(rows.map((r) => [r.valuation_id, r]));
-      const missing = [...consentMatches.keys()].filter((v) => !byValuation.has(v));
+      // Only look up as many consent-only properties as the list can show
+      const allMissing = [...consentMatches.keys()].filter((v) => !byValuation.has(v));
+      const missing = allMissing.slice(0, Math.max(0, CFG.maxResults - rows.length));
       for (const r of await fetchProperties(missing, signal)) {
         if (!byValuation.has(r.valuation_id)) { byValuation.set(r.valuation_id, r); rows.push(r); }
       }
@@ -263,7 +273,9 @@
         r._ownMatch = CFG.searchFields.some((f) => contains(r[f], phrase));
         r._consentMatches = matches && !r._ownMatch ? matches : null;
       }
-      const total = propTotal + rows.filter((r) => !r._ownMatch).length;
+      // Approximate when a broad search hits the limits (more consents or properties than fetched)
+      const consentOnly = rows.filter((r) => !r._ownMatch).length;
+      const total = consentMatches.truncated ? Infinity : propTotal + Math.max(consentOnly, allMissing.length);
       const results = sortResults(rows, terms).slice(0, CFG.maxResults);
       currentResults = results;
       currentTerms = terms;
@@ -289,6 +301,7 @@
         orderByFields: ["CONSENT_FILE_ID"],
         num: CFG.maxConsentMatches
       }, { signal });
+      out.truncated = !!fs.exceededTransferLimit;
       const phrase = terms[0];
       for (const { attributes: c } of fs.features) {
         const v = c[CFG.consentKeyField];
@@ -308,18 +321,16 @@
     return out;
   }
 
+  // Batches run in parallel; 100 IDs per request keeps URLs a sensible length.
   async function fetchProperties(valuationIds, signal) {
-    const rows = [];
-    for (let i = 0; i < valuationIds.length; i += 200) {
-      const chunk = valuationIds.slice(i, i + 200);
-      const fs = await propertyLayer.queryFeatures({
-        where: `valuation_id IN (${chunk.map(sqlString).join(",")})`,
-        outFields: PROPERTY_FIELDS,
-        returnGeometry: false
-      }, { signal });
-      rows.push(...fs.features.map((f) => f.attributes));
-    }
-    return rows;
+    const chunks = [];
+    for (let i = 0; i < valuationIds.length; i += 100) chunks.push(valuationIds.slice(i, i + 100));
+    const sets = await Promise.all(chunks.map((chunk) => propertyLayer.queryFeatures({
+      where: `valuation_id IN (${chunk.map(sqlString).join(",")})`,
+      outFields: PROPERTY_FIELDS,
+      returnGeometry: false
+    }, { signal })));
+    return sets.flatMap((fs) => fs.features.map((f) => f.attributes));
   }
 
   // Exact consent number / valuation matches first, then prefix matches, then natural address order.
@@ -355,7 +366,9 @@
       return;
     }
     const shown = rows.length;
-    setStatus(els.resultsStatus, total > shown
+    setStatus(els.resultsStatus, total === Infinity
+      ? `Showing the first ${shown} matches – add more detail to narrow the list.`
+      : total > shown
       ? `Showing ${shown} of ${total.toLocaleString("en-NZ")} matches – add more detail to narrow the list.`
       : `${total} matching ${total === 1 ? "property" : "properties"}.`);
 
