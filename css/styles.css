@@ -298,6 +298,13 @@ table.consents td.nowrap { white-space: nowrap; }
 .consent-type { display: block; font-size: .8125rem; color: var(--muted); }
 /* Stage badge with the decision pill underneath, left edges aligned */
 .status-stack { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+/* Pull the pills left by their padding so the pill text lines up with the
+   "Status" heading and the text in the other columns */
+table.consents .status-stack { margin-left: -10px; }
+@media (max-width: 640px) {
+  /* Phone cards have no heading row to line up with; keep pills clear of the card edge */
+  table.consents .status-stack { margin-left: 0; }
+}
 .consent-site { display: block; font-size: .8125rem; color: var(--muted); }
 .desc { min-width: 220px; color: var(--text-strong); }
 
