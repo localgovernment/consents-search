@@ -369,28 +369,36 @@ table.consents .status-stack { margin-left: -10px; }
 
 .none { color: var(--muted); padding: 8px 0; margin: 0; }
 
-/* Phone: compact consent cards instead of the table (desktop/tablet keep the table) */
+/* Compact consent cards ("phone mode"). The page switches to these whenever the
+   table wouldn't fit the consents area - always on phones, and on tablets and
+   small windows too - by adding .use-cards to #detail-content. */
 .consent-cards { display: none; }
+.use-cards .table-wrap { display: none; }
+.use-cards .consent-cards { display: block; list-style: none; margin: 0; padding: 0; }
+.use-cards .tabs [role="tab"] { padding: 8px 14px; font-size: .875rem; }
+.consent-card {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 12px;
+  font-size: .9375rem; line-height: 1.45; color: var(--text-strong);
+  scroll-margin-top: 16px;
+}
+.consent-card p { margin: 0 0 4px; }
+.consent-card p:last-child { margin-bottom: 0; }
+.consent-card .cc-title { color: var(--navy); font-weight: 700; }
+.consent-card .cc-k { font-weight: 600; color: var(--text-strong); }
+.consent-card .cc-desc { margin: 6px 0; }
+.consent-card .cc-status .status { margin-right: 4px; vertical-align: 1px; }
+.consent-card.is-match { background: #fff8d6; box-shadow: inset 4px 0 0 var(--orange); }
+@media (min-width: 861px) and (min-height: 600px) {
+  /* where the property block sticks, stop a highlighted card just below it */
+  .consent-card { scroll-margin-top: calc(var(--sticky-h, 0px) + 16px); }
+}
+
+/* Phone */
 @media (max-width: 640px) {
   .map { height: 260px; }
   .detail { padding: 18px 16px 20px; }
   .property-summary h2 { font-size: 1.625rem; }
-  .tabs [role="tab"] { padding: 8px 14px; font-size: .875rem; }
-  .table-wrap { display: none; }
-  .consent-cards { display: block; list-style: none; margin: 0; padding: 0; }
-  .consent-card {
-    border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 12px 14px; margin-bottom: 12px;
-    font-size: .9375rem; line-height: 1.45; color: var(--text-strong);
-    scroll-margin-top: 16px;
-  }
-  .consent-card p { margin: 0 0 4px; }
-  .consent-card p:last-child { margin-bottom: 0; }
-  .consent-card .cc-title { color: var(--navy); font-weight: 700; }
-  .consent-card .cc-k { font-weight: 600; color: var(--text-strong); }
-  .consent-card .cc-desc { margin: 6px 0; }
-  .consent-card .cc-status .status { margin-right: 4px; vertical-align: 1px; }
-  .consent-card.is-match { background: #fff8d6; box-shadow: inset 4px 0 0 var(--orange); }
 }
 
 /* ---------------------------------------------------------- footer */

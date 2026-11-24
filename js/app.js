@@ -585,6 +585,7 @@
     const matchRow = await loadConsents(attrs, signal, highlightIds, markTerms);
 
     if (matchRow) {
+      updateStickyHeight();   // the new property's header may be taller; measure before scrolling
       matchRow.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (!desktop) {
       els.detailContent.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -721,8 +722,8 @@
       ? tabFor[cat(firstMatch)]
       : (building.length ? els.tabBuilding : resource.length ? els.tabResource : other.length ? els.tabOther : els.tabBuilding);
     selectTab(tab, false);
-    const phone = window.matchMedia("(max-width: 640px)").matches;
-    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector(phone ? ".consent-card.is-match" : "tr.is-match") : null;
+    const cards = els.detailContent.classList.contains("use-cards");
+    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector(cards ? ".consent-card.is-match" : "tr.is-match") : null;
   }
 
   // Site names from the consents that differ from the rating address, under the address heading.
@@ -830,9 +831,32 @@
   // The column headings stick directly under the sticky property block, whose
   // height changes (long addresses, "+N more" site names), so track it.
   const stickyBlock = $("detail-sticky");
-  new ResizeObserver(() => {
+  function updateStickyHeight() {
     document.documentElement.style.setProperty("--sticky-h", `${Math.ceil(stickyBlock.getBoundingClientRect().height)}px`);
-  }).observe(stickyBlock);
+  }
+  new ResizeObserver(updateStickyHeight).observe(stickyBlock);
+
+  // ---------------------------------------------------------------- card mode
+  // Show the compact cards instead of the table whenever the table wouldn't fit
+  // the consents area without columns being cut off: always on phones, and on
+  // tablets / small windows when needed. Re-checked on tab change and resize.
+  const phoneQuery = window.matchMedia("(max-width: 640px)");
+  function updateCardMode() {
+    const dc = els.detailContent;
+    if (dc.hidden) return;
+    if (phoneQuery.matches) { dc.classList.add("use-cards"); return; }
+    const panel = [els.panelBuilding, els.panelResource, els.panelOther].find((p) => !p.hidden);
+    const table = panel && panel.querySelector("table.consents");
+    if (!table) return;                       // nothing to measure (no consents in this tab)
+    dc.classList.remove("use-cards");         // measure the table at its natural width...
+    const fits = table.getBoundingClientRect().width <= panel.clientWidth + 1;
+    dc.classList.toggle("use-cards", !fits);  // ...and switch before the browser paints
+  }
+  let lastDetailWidth = 0;
+  new ResizeObserver((entries) => {
+    const w = Math.round(entries[0].contentRect.width);
+    if (w !== lastDetailWidth) { lastDetailWidth = w; updateCardMode(); }
+  }).observe(document.querySelector(".detail"));
 
   // ---------------------------------------------------------------- tabs
   const tabs = [els.tabBuilding, els.tabResource, els.tabOther];
@@ -843,6 +867,7 @@
       t.tabIndex = on ? 0 : -1;
       $(t.getAttribute("aria-controls")).hidden = !on;
     }
+    updateCardMode();
     if (focus) tab.focus();
   }
   tabs.forEach((t) => {
