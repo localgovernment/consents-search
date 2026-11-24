@@ -4,6 +4,21 @@ Open questions and issues to resolve before this page goes live. Newest first wi
 
 ## Data (for the council / data export)
 
+### Unit and sub-addresses missing from the property layer
+*Logged 2026-11-24*
+
+The GIS isn't receiving unit and sub-addresses from CiAnywhere, so the Rateable Property `address` field only has the base street address:
+- None of the 26,727 addresses contain a unit (no `1/102 …` style addresses).
+- Over 2,000 addresses are shared by more than one valuation, covering at least 5,696 valuations.
+
+Example: valuations **0730164291A** (Flat 1) and **0730164291B** (Flat 2) both show as **102 Lakewood Drive Taupo**.
+
+Effect on the page:
+- **Searching by unit:** searching "1/102 Lakewood" finds nothing from the property address. It only works if a consent's site name happens to contain it (e.g. "1/102 Lakewood Drive, Taupo").
+- **Results list:** units at the same address look identical in the results list. People have to tell them apart by valuation number and legal description (e.g. "Flat 1 DPS 81750 …").
+
+**To fix:** include unit / sub-address in the GIS address feed from CiAnywhere. Once it's there, the page needs no changes: unit searches will match, and the results list will show the full address.
+
 ### Decision type set on consents that haven't been decided
 *Logged 2026-11-24*
 
