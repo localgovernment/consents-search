@@ -32,11 +32,19 @@ Effect on the page:
 1. Hide the decision pill for Lodged (`L`) and Current (`C`) consents (recommended).
 2. Remove the decision pill entirely, since the council's system doesn't show it on the summary screen.
 
-### Consents with no valuation number
-2,593 consents (5,566 rows), mostly from 2020 onwards, have no `PROP_Valuation_Reference_Number`. They never appear under a property, and searching their consent number finds nothing. Either fix the export, or show them in search as standalone "no linked property" results.
+### Consents not linked to a property are currently hidden
+Some consents can't be shown anywhere on the page at the moment, even though a search by **consent number** or **consent site name** matches them in the consents data. The page only shows consents under a property, so a consent with no matching property is dropped:
 
-### Valuation numbers not in the property layer
-Some consents have valuation numbers that don't exist in the Rateable Property layer, so they can't be shown.
+- **No valuation number:** 2,593 consents (5,566 rows), mostly from 2020 onwards, have no `PROP_Valuation_Reference_Number`. Example: **BC2026/CA260964**.
+- **Valuation number not in the property layer:** some consents have a valuation number that doesn't exist in the Rateable Property layer (e.g. retired or not-yet-rated valuations), so there's no property to show them under.
+
+What people see now: searching such a consent's number or site name returns "No properties match your search", although the consent exists.
+
+**Options:**
+1. Fix the links in the export, so every consent has a current valuation number.
+2. Change the page so these consents appear in search results on their own, e.g. "BC2026/CA260964 – not linked to a property", and selecting one shows its details without a map or property.
+
+A mix of both is likely to be needed, since some consents may never have a rated property.
 
 ### Status Q and A records not found in the council's system
 The 1,066 `Q` rows and 2 `A` rows couldn't be found in the council's system. They're probably test-only records. Check them when the real export is set up. The page shows these codes as-is.
