@@ -90,6 +90,8 @@
         </div>
 
         <div id="detail-content" hidden>
+          <!-- Sticks to the top of the screen (desktop) while scrolling through the consents -->
+          <div id="detail-sticky" class="detail-sticky">
           <div class="property-summary">
             <h2 id="property-title"></h2>
             <p id="property-sites" class="property-sites" hidden></p>
@@ -102,6 +104,7 @@
             <button role="tab" id="tab-building" aria-controls="panel-building" aria-selected="true">Building consents <span class="count" id="count-building">0</span></button>
             <button role="tab" id="tab-resource" aria-controls="panel-resource" aria-selected="false" tabindex="-1">Resource consents <span class="count" id="count-resource">0</span></button>
             <button role="tab" id="tab-other" aria-controls="panel-other" aria-selected="false" tabindex="-1" hidden>Other <span class="count" id="count-other">0</span></button>
+          </div>
           </div>
           <div id="panel-building" class="tab-panel" role="tabpanel" aria-labelledby="tab-building" tabindex="0"></div>
           <div id="panel-resource" class="tab-panel" role="tabpanel" aria-labelledby="tab-resource" tabindex="0" hidden></div>

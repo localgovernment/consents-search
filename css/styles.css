@@ -131,7 +131,8 @@ a:hover { color: var(--navy); }
   display: flex;
   flex-direction: column;
 }
-.detail-panel { background: var(--surface); overflow: hidden; }
+/* clip (not hidden) so sticky content inside still sticks to the page */
+.detail-panel { background: var(--surface); overflow: hidden; overflow: clip; }
 
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; gap: 20px; }
@@ -290,6 +291,24 @@ table.consents tr.is-match, table.consents tr.is-match:hover { background: #fff8
 
 /* Consents table */
 .table-wrap { overflow-x: auto; }
+table.consents tbody tr { scroll-margin-top: 16px; }
+
+/* Desktop: the property block (address -> tabs) and the column headings stay
+   at the top of the screen while scrolling through the consents, then scroll
+   away at the end of the table. Not on narrow or short screens. */
+@media (min-width: 861px) and (min-height: 600px) {
+  .detail-sticky {
+    position: sticky; top: 0; z-index: 3;
+    background: var(--surface);
+    padding-top: 12px; margin-top: -12px;     /* a little breathing room above the address when stuck */
+  }
+  .detail-sticky .tabs { margin-bottom: 0; padding-bottom: 16px; }
+  .detail-sticky + .tab-panel, #detail-content .tab-panel { padding-top: 0; }
+  .table-wrap { overflow: visible; }            /* a scrolling wrapper would stop the headings sticking */
+  /* -1px overlaps the block slightly so no sliver of the rows shows between them */
+  table.consents thead th { position: sticky; top: calc(var(--sticky-h, 0px) - 1px); z-index: 2; }
+  table.consents tbody tr { scroll-margin-top: calc(var(--sticky-h, 0px) + 52px); }
+}
 table.consents { width: 100%; border-collapse: collapse; font-size: .9375rem; }
 table.consents th, table.consents td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 table.consents th {

@@ -471,7 +471,7 @@
     const matchRow = await loadConsents(attrs, signal, highlightIds, markTerms);
 
     if (matchRow) {
-      matchRow.scrollIntoView({ behavior: "smooth", block: "center" });
+      matchRow.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (window.matchMedia("(max-width: 860px)").matches) {
       els.detailContent.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -675,6 +675,14 @@
       </tr></thead>
       <tbody>${body}</tbody></table></div>`;
   }
+
+  // ---------------------------------------------------------------- sticky header
+  // The column headings stick directly under the sticky property block, whose
+  // height changes (long addresses, "+N more" site names), so track it.
+  const stickyBlock = $("detail-sticky");
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty("--sticky-h", `${Math.ceil(stickyBlock.getBoundingClientRect().height)}px`);
+  }).observe(stickyBlock);
 
   // ---------------------------------------------------------------- tabs
   const tabs = [els.tabBuilding, els.tabResource, els.tabOther];
