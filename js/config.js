@@ -98,15 +98,16 @@ window.CONSENTS_SEARCH_CONFIG = {
     EXPIRED: { label: "Expired", tone: "warn" }
   },
 
-  // CONSENT_STATUS letter -> label. Only used when a consent has no stage code.
-  // (P, Q and A all appear as Historic / Archived in the council's system – assumed.)
+  // CONSENT_STATUS letter -> label, as shown in the council's system (confirmed
+  // against example consents). Only used when a consent has no stage code.
+  // Q and A couldn't be matched to live consents, so they show the raw code.
   statuses: {
     L: { label: "Lodged", tone: "info" },
     C: { label: "Current", tone: "info" },
     D: { label: "Determined", tone: "good" },
-    P: { label: "Historic / archived", tone: "neutral" },
-    Q: { label: "Historic / archived", tone: "neutral" },
-    A: { label: "Historic / archived", tone: "neutral" },
+    P: { label: "Historic / Archived", tone: "neutral" },
+    Q: { label: "Q", tone: "neutral" },
+    A: { label: "A", tone: "neutral" },
     R: { label: "Rejected", tone: "bad" },
     X: { label: "Cancelled", tone: "neutral" },
     S: { label: "Suspended", tone: "warn" }
