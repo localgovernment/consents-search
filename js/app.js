@@ -819,6 +819,7 @@
     }).join("");
     return `<div class="table-wrap"><table class="consents">
       <caption class="visually-hidden">${kind === "building" ? "Building" : "Resource"} consents, newest first</caption>
+      <colgroup><col class="c-consent"><col><col class="c-status"><col class="c-date"><col class="c-date"><col class="c-closed"></colgroup>
       <thead><tr>
         <th scope="col">Consent</th><th scope="col">Description</th><th scope="col">Status</th>
         <th scope="col">Lodged</th><th scope="col">Determined</th><th scope="col">Completed / lapsed</th>

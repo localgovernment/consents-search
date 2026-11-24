@@ -329,7 +329,17 @@ table.consents tbody tr { scroll-margin-top: 16px; }
   table.consents thead th { position: sticky; top: calc(var(--sticky-h, 0px) - 1px); z-index: 2; }
   table.consents tbody tr { scroll-margin-top: calc(var(--sticky-h, 0px) + 52px); }
 }
-table.consents { width: 100%; border-collapse: collapse; font-size: .9375rem; }
+/* Fixed column widths, the same for every tab, so columns don't shift when switching
+   between Building and Resource. Description takes the remaining space. min-width is
+   the narrowest the table can be without cutting columns off; below it the page
+   switches to the cards. */
+table.consents { width: 100%; min-width: 835px; table-layout: fixed; border-collapse: collapse; font-size: .9375rem; }
+table.consents col.c-consent { width: 165px; }
+table.consents col.c-status  { width: 110px; }
+table.consents col.c-date    { width: 110px; }
+table.consents col.c-closed  { width: 140px; }
+table.consents td { overflow-wrap: anywhere; }
+table.consents .status { white-space: normal; }   /* a long stage name wraps inside its pill */
 table.consents th, table.consents td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 table.consents th {
   font-size: .8125rem; color: var(--text-strong); font-weight: 700; white-space: nowrap;
