@@ -98,9 +98,14 @@
   homeButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.3 1 7.4l.7.8L3 7.1V15h4v-4h2v4h4V7.1l1.3 1.1.7-.8L8 1.3zM12 14h-2v-4H6v4H4V6.2l4-3.5 4 3.5V14z"/></svg>';
   // Shared by the map Home button and the × in the search box
   function goHome() {
+    // Focus first, while still inside the tap/click: mobile browsers (iOS in
+    // particular) only allow focus - and show the keyboard - during the gesture.
+    els.input.focus();
+    if (window.matchMedia("(max-width: 860px)").matches) {
+      els.input.scrollIntoView({ block: "center" });   // search box sits above the map on phones
+    }
     resetAll();
     view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600 }).catch(() => {});
-    els.input.focus();      // ready for the next search
   }
   homeButton.addEventListener("click", goHome);
   view.ui.add(homeButton, "top-left");
