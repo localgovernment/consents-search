@@ -721,7 +721,8 @@
       ? tabFor[cat(firstMatch)]
       : (building.length ? els.tabBuilding : resource.length ? els.tabResource : other.length ? els.tabOther : els.tabBuilding);
     selectTab(tab, false);
-    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector("tr.is-match") : null;
+    const phone = window.matchMedia("(max-width: 640px)").matches;
+    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector(phone ? ".consent-card.is-match" : "tr.is-match") : null;
   }
 
   // Site names from the consents that differ from the rating address, under the address heading.
@@ -771,6 +772,8 @@
     if (!rows.length) {
       return `<p class="none">No ${kind} consents were found for this property.</p>`;
     }
+    const kindLabel = { building: "Building Consent", resource: "Resource Consent" }[kind] || "Consent";
+    const cards = [];
     const body = rows.map((r) => {
       const type = consentTypeInfo(r.CONSENT_APPLN_TYPE);
       const stage = stageInfo(r.CONSENT_APPLN_STAGE_CODE, r.CONSENT_STATUS);
@@ -778,7 +781,24 @@
       const decided = formatDate(r.CONSENT_DECISION_DATE);
       const closedLabel = r.CONSENT_COMPLETED_DATE ? "Completed" : (r.CONSENT_LAPSED_DATE ? "Lapsed" : "");
       const closed = formatDate(r.CONSENT_COMPLETED_DATE || r.CONSENT_LAPSED_DATE);
+      const closedText = closed ? `${closed}${closedLabel === "Lapsed" ? " (lapsed)" : ""}` : "–";
       const isMatch = hl.has(String(r.CONSENT_FILE_ID).toUpperCase());
+      const pills = `<span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}`;
+      const site = r.CONSENT_SITE_NAME ? highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms) : "";
+
+      // Phone card: one line per item, same font size throughout
+      cards.push(`<li class="consent-card${isMatch ? " is-match" : ""}">
+        <p class="cc-title">${kindLabel}: ${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</p>
+        ${isMatch ? '<p><span class="match-tag">Search match</span></p>' : ""}
+        <p><span class="cc-k">Application:</span> ${escapeHtml(type.label)}</p>
+        ${r.CONSENT_DESCRIPTION ? `<p class="cc-desc">${escapeHtml(r.CONSENT_DESCRIPTION)}</p>` : ""}
+        ${site ? `<p><span class="cc-k">Site:</span> ${site}</p>` : ""}
+        <p class="cc-status"><span class="cc-k">Status:</span> ${pills}</p>
+        <p><span class="cc-k">Lodged:</span> ${lodged || "–"}</p>
+        <p><span class="cc-k">Determined:</span> ${decided || "–"}</p>
+        <p><span class="cc-k">Completed / Lapsed:</span> ${closedText}</p>
+      </li>`);
+
       return `<tr${isMatch ? ' class="is-match"' : ""}>
         <td data-label="Consent">
           <span class="consent-id">${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</span>
@@ -790,10 +810,10 @@
           ${escapeHtml(r.CONSENT_DESCRIPTION || "")}
           ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms)}</span>` : ""}
         </td>
-        <td data-label="Status"><span class="status-stack"><span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}</span></td>
+        <td data-label="Status"><span class="status-stack">${pills}</span></td>
         <td data-label="Lodged" class="nowrap">${lodged || "–"}</td>
         <td data-label="Determined" class="nowrap">${decided || "–"}</td>
-        <td data-label="${closedLabel || "Completed / lapsed"}" class="nowrap">${closed ? `${closed}${closedLabel === "Lapsed" ? " (lapsed)" : ""}` : "–"}</td>
+        <td data-label="${closedLabel || "Completed / lapsed"}" class="nowrap">${closedText}</td>
       </tr>`;
     }).join("");
     return `<div class="table-wrap"><table class="consents">
@@ -802,7 +822,8 @@
         <th scope="col">Consent</th><th scope="col">Description</th><th scope="col">Status</th>
         <th scope="col">Lodged</th><th scope="col">Determined</th><th scope="col">Completed / lapsed</th>
       </tr></thead>
-      <tbody>${body}</tbody></table></div>`;
+      <tbody>${body}</tbody></table></div>
+      <ul class="consent-cards" aria-label="${kindLabel}s, newest first">${cards.join("")}</ul>`;
   }
 
   // ---------------------------------------------------------------- sticky header

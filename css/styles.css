@@ -369,20 +369,28 @@ table.consents .status-stack { margin-left: -10px; }
 
 .none { color: var(--muted); padding: 8px 0; margin: 0; }
 
-/* Phone: turn table rows into cards */
+/* Phone: compact consent cards instead of the table (desktop/tablet keep the table) */
+.consent-cards { display: none; }
 @media (max-width: 640px) {
   .map { height: 260px; }
   .detail { padding: 18px 16px 20px; }
   .property-summary h2 { font-size: 1.625rem; }
   .tabs [role="tab"] { padding: 8px 14px; font-size: .875rem; }
-  table.consents thead { display: none; }
-  table.consents, table.consents tbody, table.consents tr, table.consents td { display: block; width: 100%; }
-  table.consents tr { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 12px; padding: 6px 0; }
-  table.consents td { border: 0; padding: 4px 14px; }
-  table.consents td[data-label]::before {
-    content: attr(data-label); display: block; font-size: .75rem; color: var(--muted);
+  .table-wrap { display: none; }
+  .consent-cards { display: block; list-style: none; margin: 0; padding: 0; }
+  .consent-card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 12px 14px; margin-bottom: 12px;
+    font-size: .9375rem; line-height: 1.45; color: var(--text-strong);
+    scroll-margin-top: 16px;
   }
-  .desc { min-width: 0; }
+  .consent-card p { margin: 0 0 4px; }
+  .consent-card p:last-child { margin-bottom: 0; }
+  .consent-card .cc-title { color: var(--navy); font-weight: 700; }
+  .consent-card .cc-k { font-weight: 600; color: var(--text-strong); }
+  .consent-card .cc-desc { margin: 6px 0; }
+  .consent-card .cc-status .status { margin-right: 4px; vertical-align: 1px; }
+  .consent-card.is-match { background: #fff8d6; box-shadow: inset 4px 0 0 var(--orange); }
 }
 
 /* ---------------------------------------------------------- footer */

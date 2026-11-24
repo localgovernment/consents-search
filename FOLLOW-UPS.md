@@ -99,6 +99,7 @@ Several of the data issues above may also partly come from stale or test extract
 
 - **RCRIGHTWAY name:** currently "Right of Way" (assumed). Confirm it with a consent such as RC2026/260050.
 - **Effective date:** to be added to the service (Sam), then shown as a column.
+- **Descriptions alongside the codes (Sam):** the export should include descriptive names next to each code. That means the application type description (e.g. `CONSENT_APPLN_TYPE` = `BCCONSENT` plus a description field = "Building Consent"), and ideally the stage, status and decision descriptions too. The page currently keeps its own code → name list in `js/config.js`, which has to be updated by hand whenever CiAnywhere adds or renames a type. With descriptions in the data, the page would show them directly. The phone view shows only the description ("Application: Building Consent"); desktop shows the code and the description.
 - **Decision codes `DCCONNREQD` and `DCCONREQD`:** meaning unknown, so they show as raw codes.
 
 ## App limitations
