@@ -96,10 +96,12 @@
   homeButton.className = "map-home-btn";
   homeButton.title = homeButton.ariaLabel = "Reset map and clear search";
   homeButton.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.3 1 7.4l.7.8L3 7.1V15h4v-4h2v4h4V7.1l1.3 1.1.7-.8L8 1.3zM12 14h-2v-4H6v4H4V6.2l4-3.5 4 3.5V14z"/></svg>';
-  homeButton.addEventListener("click", () => {
+  // Shared by the map Home button and the × in the search box
+  function goHome() {
     resetAll();
     view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600 }).catch(() => {});
-  });
+  }
+  homeButton.addEventListener("click", goHome);
   view.ui.add(homeButton, "top-left");
 
   // ---------------------------------------------------------------- helpers
@@ -766,10 +768,9 @@
       (li.previousElementSibling ? li.previousElementSibling.firstElementChild : els.input).focus();
     }
   });
+  // × in the search box: same as the map Home button (clear everything, reset the map)
   els.clear.addEventListener("click", () => {
-    els.input.value = "";
-    els.clear.hidden = true;
-    runSearch("");
+    goHome();
     els.input.focus();
   });
 
