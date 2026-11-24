@@ -182,12 +182,16 @@ a:hover { color: var(--navy); }
 @media (prefers-reduced-motion: reduce) { .hint { transition: none; } }
 
 .results-status { font-size: .875rem; color: var(--muted); min-height: 1.5em; margin-bottom: 8px; }
+/* In the fixed-height desktop panel only the results list may shrink (and scroll);
+   the search box, hint and status line always keep their full height */
+.search-panel > :not(.results-list) { flex-shrink: 0; }
 .results-status.error { color: var(--bad-fg); }
 
 .results-list {
   list-style: none; margin: 0; padding: 0;
   overflow-y: auto;
   flex: 1 1 auto;
+  min-height: 0;
   background: #fff;
   border: 1px solid var(--border);
 }
