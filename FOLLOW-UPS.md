@@ -26,7 +26,7 @@ Effect on the page:
 
 - 1,144 Lodged/Current consents have a decision type set (284 of them `COMPLETED`).
 - 32,056 rows have a decision type but no decision date.
-- *Updated 2026-11-25:* the consent cards now show the decision on the **Determined** line, as the council's system does ("Determined: 17 Mar 2026 – Issued"). By decision, the line is shown when **either** the decision date or the decision type has a value. So BC2026/260888 shows **"Determined: Completed (no date)"** while its status is still Current / In progress, which is misleading.
+- *Updated 2026-11-25:* the consent cards now show the decision on the **Determined** line, as the council's system does ("Determined: 17 Mar 2026 – Issued"). By decision, the line is shown when **either** the decision date or the decision type has a value. So BC2026/260888 shows **"Determined: Completed"** (no date) while its status is still Current / In progress, which is misleading.
 
 **To follow up:**
 - **Ask Sam / the consents team** what this field means for undecided consents (a default per application type?).
@@ -105,7 +105,7 @@ Several of the data issues above may also partly come from stale or test extract
 ## Waiting on information
 
 - **RCRIGHTWAY name:** currently "Right of Way" (assumed). Confirm it with a consent such as RC2026/260050.
-- **Effective date:** to be added to the service (Sam). Every consent card shows "Effective: Not yet available" until then. When it's added, set `effectiveDateField` in `js/config.js` to the field name, and the card shows the date (or no line when it's blank).
+- **Effective date:** to be added to the service (Sam). Every consent card shows an empty "Effective:" line until then. When it's added, set `effectiveDateField` in `js/config.js` to the field name, and the card shows the date (or no line when it's blank).
 - **Descriptions alongside the codes (Sam):** the export should include descriptive names next to each code. That means the application type description (e.g. `CONSENT_APPLN_TYPE` = `BCCONSENT` plus a description field = "Building Consent"), and ideally the stage, status and decision descriptions too. The page currently keeps its own code → name list in `js/config.js`, which has to be updated by hand whenever CiAnywhere adds or renames a type. With descriptions in the data, the page would show them directly. The phone view shows only the description ("Application: Building Consent"); desktop shows the code and the description.
 - **Decision codes `DCCONNREQD` and `DCCONREQD`:** meaning unknown, so they show as raw codes.
 

@@ -19,14 +19,14 @@ Each consent is shown as a card, on every screen size, following the council sys
 
 ```
 Building Consent: BC2026/260888
+Site: 6 Ferry Road, Taupo
 Application: Building Consent (BCCONSENT)     ← code hidden on phones
 <description>
-Site: 6 Ferry Road, Taupo
 Status: [Current] [In progress]               ← CONSENT_STATUS + CONSENT_APPLN_STAGE_CODE ("Stage:" if no status)
 Lodged / Accepted / Determined (date – decision) / Effective / Completed / Lapsed
 ```
 
-Lines with no value are left out, except Effective, which shows "Not yet available" until the field is in the data (`effectiveDateField` in `js/config.js`). On wider screens each card has the details on the left and the status and dates on the right.
+Lines with no value are left out, except Effective, which shows an empty "Effective:" line until the field is in the data (`effectiveDateField` in `js/config.js`). On wider screens each card has the details on the left and the status and dates on the right.
 
 You can also click a parcel on the map. A property can be linked directly with `?valuation=0730200400` (add `&consent=BC1995/951416` to highlight a consent), and a search with `?q=tongariro`. A consent that isn't linked to any property opens with `?consent=BC2026/CA260964` alone.
 

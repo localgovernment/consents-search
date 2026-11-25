@@ -798,7 +798,7 @@
       // is in the data for some undecided consents - see FOLLOW-UPS.md)
       if (decided || decision) {
         dates.push(line("Determined", decided && decision ? `${decided} – ${escapeHtml(decision)}`
-          : decided || `${escapeHtml(decision)} ${dim("(no date)")}`));
+          : decided || escapeHtml(decision)));
       }
       if (!CFG.effectiveDateField) dates.push(line("Effective", dim(CFG.effectiveDatePlaceholder)));
       else { const eff = formatDate(r[CFG.effectiveDateField]); if (eff) dates.push(line("Effective", eff)); }
@@ -809,9 +809,9 @@
         <div class="cc-main">
           <p class="cc-title">${kindLabel}: ${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</p>
           ${isMatch ? '<p><span class="match-tag">Search match</span></p>' : ""}
+          ${site ? line("Site", site) : ""}
           ${line("Application", `${escapeHtml(type.label)}${r.CONSENT_APPLN_TYPE ? ` <span class="cc-code">(${escapeHtml(r.CONSENT_APPLN_TYPE)})</span>` : ""}`)}
           ${r.CONSENT_DESCRIPTION ? `<p class="cc-desc">${escapeHtml(r.CONSENT_DESCRIPTION)}</p>` : ""}
-          ${site ? line("Site", site) : ""}
         </div>
         <div class="cc-side">${statusLine}${dates.join("")}</div>
       </li>`;
