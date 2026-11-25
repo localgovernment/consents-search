@@ -61,6 +61,10 @@ a:hover { color: var(--navy); }
 /* ---------------------------------------------------------- site header */
 .site-header { background: var(--surface); border-bottom: 1px solid var(--border); }
 .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 110px; }
+/* Same header width as www.taupodc.govt.nz (1440px), and CONTACT sits where it does
+   there: 76px in from the right, the space their search icon occupies */
+.site-header__inner { max-width: 1440px; }
+.site-header__links { margin-right: 76px; }
 .site-logo { display: block; line-height: 0; }
 .site-logo img { height: 66px; width: auto; display: block; }
 /* Matches the CONTACT link on www.taupodc.govt.nz as visitors actually see it: that
