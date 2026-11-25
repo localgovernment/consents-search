@@ -551,9 +551,7 @@
   // result was found through, if any).
   // scrollToTop: on desktop, bring the search panel and map to the top of the screen
   // (user selections; not when a property opens from a link or the Back button).
-  // moveMap: zoom the map to the property (false when it was picked by clicking the map,
-  // so the map stays where the person is looking and just highlights the boundary).
-  async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true, moveMap = true } = {}) {
+  async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true } = {}) {
     selectedKey = resultKey(attrs);
     // A consent with no linked property is shown on its own, so there's nothing to highlight
     if (!highlightIds) highlightIds = attrs._unlinked ? [] : (attrs._consentMatches || []).map((m) => m.fileId);
@@ -584,7 +582,7 @@
     detailController = new AbortController();
     const { signal } = detailController;
 
-    showOnMap(attrs, signal, moveMap);
+    showOnMap(attrs, signal);
     const matchRow = await loadConsents(attrs, signal, highlightIds, markTerms);
 
     if (matchRow) {
@@ -614,7 +612,7 @@
     document.title = `[Beta] ${els.propertyTitle.textContent} – consents | Taupō District Council`;
   }
 
-  async function showOnMap(a, signal, moveMap = true) {
+  async function showOnMap(a, signal) {
     selectionLayer.removeAll();
     if (a._unlinked) {
       view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600, signal }).catch(() => {});
@@ -636,7 +634,7 @@
           outline: { color: [0, 96, 122, 1], width: 3 }
         }
       }));
-      if (moveMap) await view.goTo({ target: f.geometry.extent.clone().expand(2.2) }, { duration: 600, signal });
+      await view.goTo({ target: f.geometry.extent.clone().expand(2.2) }, { duration: 600, signal });
     } catch (err) {
       if (!isAbort(err)) console.warn("Could not show property on map", err);
     }
@@ -887,7 +885,7 @@
         ? "1 property at the location you clicked."
         : `${rows.length} properties at the location you clicked.`);
       loadConsentCounts(rows, signal);
-      selectProperty(top, { moveMap: false });
+      selectProperty(top);     // zooms to it like any other selection
     } catch (err) {
       if (!isAbort(err)) console.warn("Map identify failed", err);
     }
