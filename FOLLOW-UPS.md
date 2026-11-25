@@ -2,6 +2,19 @@
 
 Open questions and issues to resolve before this page goes live. Newest first within each section.
 
+## Raised with Benny and Sam
+*2026-11-25*. These export changes have been requested; details are in the sections below.
+
+| # | Request | Unblocks |
+| --- | --- | --- |
+| 1 | **Effective date** field in the consents table | The "Effective:" line on consent cards (set `effectiveDateField` in `js/config.js`) |
+| 2 | **Descriptions alongside codes:** application type (required), and ideally stage, status and decision | Replacing the hand-maintained name lists in `js/config.js` |
+| 3 | **Unit / sub-addresses** in the Rateable Property address | Telling flats apart; searching "1/122 Lakewood" |
+| 4 | **Tidied search fields** (`address_search`, `legal_search`, `site_search`) | Exact comma/space-insensitive search; removing the comma workaround |
+| 5 | **Regular refresh from production** of the four extracts in `\\virapp05\cia\in\gis` | Real data; removing the beta banner |
+
+Not raised yet (still open below): linking consents to current valuations (no valuation / superseded / partly linked), tidying consent site names, address format consistency, trimming addresses, legal description length, and the questions for the consents team (decision type on undecided consents, status vs stage, Current + Granted, lapsed date meaning, Q/A records, `DCCONNREQD`/`DCCONREQD`, RC2026/260315, RCRIGHTWAY name).
+
 ## Data (for the council / data export)
 
 ### Unit and sub-addresses missing from the property layer
