@@ -63,11 +63,14 @@ a:hover { color: var(--navy); }
 .site-header__inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 110px; }
 .site-logo { display: block; line-height: 0; }
 .site-logo img { height: 66px; width: auto; display: block; }
+/* Matches the CONTACT link on www.taupodc.govt.nz as visitors actually see it: that
+   site asks for Open Sans but never loads it, so browsers show Arial (Windows) or
+   Helvetica (Mac). 16px bold #555, uppercase, no colour change on hover. */
 .site-header__links a {
   color: var(--text); text-decoration: none; text-transform: uppercase;
-  font-weight: 700; font-size: .9375rem;
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  font-weight: 700; font-size: 1rem; line-height: 24px;
 }
-.site-header__links a:hover { color: var(--teal-dark); }
 
 @media (max-width: 640px) {
   .site-header__inner { min-height: 76px; }
