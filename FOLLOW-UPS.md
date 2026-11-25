@@ -26,11 +26,18 @@ Effect on the page:
 
 - 1,144 Lodged/Current consents have a decision type set (284 of them `COMPLETED`).
 - 32,056 rows have a decision type but no decision date.
-- The page currently shows the decision type as an outlined pill under the stage, so BC2026/260888 shows **In progress** and **Completed**, which is misleading.
+- *Updated 2026-11-25:* the consent cards now show the decision on the **Determined** line, as the council's system does ("Determined: 17 Mar 2026 – Issued"). By decision, the line is shown when **either** the decision date or the decision type has a value. So BC2026/260888 shows **"Determined: Completed (no date)"** while its status is still Current / In progress, which is misleading.
 
-**To decide:** find out (Sam) what this field means for undecided consents. Options for the page:
-1. Hide the decision pill for Lodged (`L`) and Current (`C`) consents (recommended).
-2. Remove the decision pill entirely, since the council's system doesn't show it on the summary screen.
+**To follow up:**
+- **Ask Sam / the consents team** what this field means for undecided consents (a default per application type?).
+- **Then revisit the page rule.** Options:
+  - only show the Determined line when there's a decision **date**, matching the council system's summary,
+  - or hide the decision for Lodged (`L`) and Current (`C`) consents.
+
+Related questions for the consents team, based on the data:
+- Is `CONSENT_STATUS` set automatically from the stage, or set separately? (Status follows stage almost exactly: Rejected is always REFUSED, Suspended always SUSPENDED, Determined almost always ISSUED.)
+- For resource consents, does Current + Granted (13,167 rows) mean granted and still active?
+- Does `CONSENT_LAPSED_DATE` on active consents mean the date the consent *will* lapse, or the date it did? (Some Issued/In progress consents have one; 14 pool registrations have future dates.)
 
 ### Consents not linked to a property
 *Updated 2026-11-24. The page now shows these as "No linked property" results; the data still needs fixing.*
@@ -98,7 +105,7 @@ Several of the data issues above may also partly come from stale or test extract
 ## Waiting on information
 
 - **RCRIGHTWAY name:** currently "Right of Way" (assumed). Confirm it with a consent such as RC2026/260050.
-- **Effective date:** to be added to the service (Sam), then shown as a column.
+- **Effective date:** to be added to the service (Sam). Every consent card shows "Effective: Not yet available" until then. When it's added, set `effectiveDateField` in `js/config.js` to the field name, and the card shows the date (or no line when it's blank).
 - **Descriptions alongside the codes (Sam):** the export should include descriptive names next to each code. That means the application type description (e.g. `CONSENT_APPLN_TYPE` = `BCCONSENT` plus a description field = "Building Consent"), and ideally the stage, status and decision descriptions too. The page currently keeps its own code → name list in `js/config.js`, which has to be updated by hand whenever CiAnywhere adds or renames a type. With descriptions in the data, the page would show them directly. The phone view shows only the description ("Application: Building Consent"); desktop shows the code and the description.
 - **Decision codes `DCCONNREQD` and `DCCONREQD`:** meaning unknown, so they show as raw codes.
 

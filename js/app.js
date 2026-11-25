@@ -44,7 +44,8 @@
     "CONSENT_DESCRIPTION", "CONSENT_SITE_NAME", "CONSENT_STATUS",
     "CONSENT_APPLN_STAGE_CODE", "CONSENT_DECISION_TYPE_CODE",
     "CONSENT_LODGED_DATE", "CONSENT_ACCEPTED_DATE", "CONSENT_DECISION_DATE",
-    "CONSENT_LAPSED_DATE", "CONSENT_COMPLETED_DATE", CFG.consentKeyField
+    "CONSENT_LAPSED_DATE", "CONSENT_COMPLETED_DATE", CFG.consentKeyField,
+    ...(CFG.effectiveDateField ? [CFG.effectiveDateField] : [])
   ];
 
   // ---------------------------------------------------------------- SDK
@@ -722,8 +723,7 @@
       ? tabFor[cat(firstMatch)]
       : (building.length ? els.tabBuilding : resource.length ? els.tabResource : other.length ? els.tabOther : els.tabBuilding);
     selectTab(tab, false);
-    const cards = els.detailContent.classList.contains("use-cards");
-    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector(cards ? ".consent-card.is-match" : "tr.is-match") : null;
+    return firstMatch ? $(tab.getAttribute("aria-controls")).querySelector(".consent-card.is-match") : null;
   }
 
   // Site names from the consents that differ from the rating address, under the address heading.
@@ -759,105 +759,74 @@
   }
 
   // Decision outcome under the status badge, only when it says something the stage doesn't
-  // Outlined pill under the stage badge; "Decision:" is in the tooltip and for screen readers
-  function decisionNote(r, stage) {
-    const code = r.CONSENT_DECISION_TYPE_CODE;
-    if (!code) return "";
-    const d = CFG.decisions[code] || { label: code, tone: "neutral" };
-    if (d.label.toUpperCase() === stage.label.toUpperCase()) return "";
-    return `<span class="status decision ${d.tone}" title="Decision: ${escapeHtml(d.label)}">` +
-      `<span class="visually-hidden">Decision: </span>${escapeHtml(d.label)}</span>`;
-  }
-
+  // Consents are shown as cards on every screen size (one layout, room for more dates).
+  // Lines with no value are left out, except Effective, which shows a placeholder
+  // until that field is in the data.
   function consentTable(rows, kind, hl = new Set(), markTerms = []) {
     if (!rows.length) {
       return `<p class="none">No ${kind} consents were found for this property.</p>`;
     }
     const kindLabel = { building: "Building Consent", resource: "Resource Consent" }[kind] || "Consent";
-    const cards = [];
-    const body = rows.map((r) => {
+    const line = (label, value) => `<p><span class="cc-k">${label}:</span> ${value}</p>`;
+    const pill = (x) => `<span class="status ${x.tone}">${escapeHtml(x.label)}</span>`;
+    const dim = (text) => `<span class="cc-dim">${escapeHtml(text)}</span>`;
+
+    const cards = rows.map((r) => {
       const type = consentTypeInfo(r.CONSENT_APPLN_TYPE);
-      const stage = stageInfo(r.CONSENT_APPLN_STAGE_CODE, r.CONSENT_STATUS);
-      const lodged = formatDate(r.CONSENT_LODGED_DATE);
-      const decided = formatDate(r.CONSENT_DECISION_DATE);
-      const closedLabel = r.CONSENT_COMPLETED_DATE ? "Completed" : (r.CONSENT_LAPSED_DATE ? "Lapsed" : "");
-      const closed = formatDate(r.CONSENT_COMPLETED_DATE || r.CONSENT_LAPSED_DATE);
-      const closedText = closed ? `${closed}${closedLabel === "Lapsed" ? " (lapsed)" : ""}` : "–";
       const isMatch = hl.has(String(r.CONSENT_FILE_ID).toUpperCase());
-      const pills = `<span class="status ${stage.tone}">${escapeHtml(stage.label)}</span>${decisionNote(r, stage)}`;
       const site = r.CONSENT_SITE_NAME ? highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms) : "";
 
-      // Phone card: one line per item, same font size throughout
-      cards.push(`<li class="consent-card${isMatch ? " is-match" : ""}">
-        <p class="cc-title">${kindLabel}: ${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</p>
-        ${isMatch ? '<p><span class="match-tag">Search match</span></p>' : ""}
-        <p><span class="cc-k">Application:</span> ${escapeHtml(type.label)}</p>
-        ${r.CONSENT_DESCRIPTION ? `<p class="cc-desc">${escapeHtml(r.CONSENT_DESCRIPTION)}</p>` : ""}
-        ${site ? `<p><span class="cc-k">Site:</span> ${site}</p>` : ""}
-        <p class="cc-status"><span class="cc-k">Status:</span> ${pills}</p>
-        <p><span class="cc-k">Lodged:</span> ${lodged || "–"}</p>
-        <p><span class="cc-k">Determined:</span> ${decided || "–"}</p>
-        <p><span class="cc-k">Completed / Lapsed:</span> ${closedText}</p>
-      </li>`);
+      // Status: <status> <stage>; just "Stage: <stage>" when there's no status; nothing if neither
+      const status = r.CONSENT_STATUS ? (CFG.statuses[r.CONSENT_STATUS] || { label: r.CONSENT_STATUS, tone: "neutral" }) : null;
+      const stage = r.CONSENT_APPLN_STAGE_CODE ? stageInfo(r.CONSENT_APPLN_STAGE_CODE) : null;
+      const statusLine = status
+        ? line("Status", `<span class="cc-pills">${pill(status)}${stage ? pill(stage) : ""}</span>`)
+        : stage ? line("Stage", `<span class="cc-pills">${pill(stage)}</span>`) : "";
 
-      return `<tr${isMatch ? ' class="is-match"' : ""}>
-        <td data-label="Consent">
-          <span class="consent-id">${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</span>
-          ${r.CONSENT_APPLN_TYPE ? `<span class="consent-code">${escapeHtml(r.CONSENT_APPLN_TYPE)}</span>` : ""}
-          <span class="consent-type">${escapeHtml(type.label)}</span>
-          ${isMatch ? '<span class="match-tag">Search match</span>' : ""}
-        </td>
-        <td data-label="Description" class="desc">
-          ${escapeHtml(r.CONSENT_DESCRIPTION || "")}
-          ${r.CONSENT_SITE_NAME ? `<span class="consent-site">Site: ${highlight(tidySiteName(r.CONSENT_SITE_NAME), markTerms)}</span>` : ""}
-        </td>
-        <td data-label="Status"><span class="status-stack">${pills}</span></td>
-        <td data-label="Lodged" class="nowrap">${lodged || "–"}</td>
-        <td data-label="Determined" class="nowrap">${decided || "–"}</td>
-        <td data-label="${closedLabel || "Completed / lapsed"}" class="nowrap">${closedText}</td>
-      </tr>`;
-    }).join("");
-    return `<div class="table-wrap"><table class="consents">
-      <caption class="visually-hidden">${kind === "building" ? "Building" : "Resource"} consents, newest first</caption>
-      <colgroup><col class="c-consent"><col><col class="c-status"><col class="c-date"><col class="c-date"><col class="c-closed"></colgroup>
-      <thead><tr>
-        <th scope="col">Consent</th><th scope="col">Description</th><th scope="col">Status</th>
-        <th scope="col">Lodged</th><th scope="col">Determined</th><th scope="col">Completed / lapsed</th>
-      </tr></thead>
-      <tbody>${body}</tbody></table></div>
-      <ul class="consent-cards" aria-label="${kindLabel}s, newest first">${cards.join("")}</ul>`;
+      // Dates, in the council system's order; Lapsed last
+      const dates = [];
+      const lodged = formatDate(r.CONSENT_LODGED_DATE);
+      const accepted = formatDate(r.CONSENT_ACCEPTED_DATE);
+      const decided = formatDate(r.CONSENT_DECISION_DATE);
+      const decision = r.CONSENT_DECISION_TYPE_CODE
+        ? ((CFG.decisions[r.CONSENT_DECISION_TYPE_CODE] || {}).label || r.CONSENT_DECISION_TYPE_CODE) : "";
+      const completed = formatDate(r.CONSENT_COMPLETED_DATE);
+      const lapsed = formatDate(r.CONSENT_LAPSED_DATE);
+      if (lodged) dates.push(line("Lodged", lodged));
+      if (accepted) dates.push(line("Accepted", accepted));
+      // Shown if either the date or the decision has a value (a decision with no date
+      // is in the data for some undecided consents - see FOLLOW-UPS.md)
+      if (decided || decision) {
+        dates.push(line("Determined", decided && decision ? `${decided} – ${escapeHtml(decision)}`
+          : decided || `${escapeHtml(decision)} ${dim("(no date)")}`));
+      }
+      if (!CFG.effectiveDateField) dates.push(line("Effective", dim(CFG.effectiveDatePlaceholder)));
+      else { const eff = formatDate(r[CFG.effectiveDateField]); if (eff) dates.push(line("Effective", eff)); }
+      if (completed) dates.push(line("Completed", completed));
+      if (lapsed) dates.push(line("Lapsed", lapsed));
+
+      return `<li class="consent-card${isMatch ? " is-match" : ""}">
+        <div class="cc-main">
+          <p class="cc-title">${kindLabel}: ${highlight(r.CONSENT_FILE_ID || r.CONSENT_APPLN_ID, markTerms)}</p>
+          ${isMatch ? '<p><span class="match-tag">Search match</span></p>' : ""}
+          ${line("Application", `${escapeHtml(type.label)}${r.CONSENT_APPLN_TYPE ? ` <span class="cc-code">(${escapeHtml(r.CONSENT_APPLN_TYPE)})</span>` : ""}`)}
+          ${r.CONSENT_DESCRIPTION ? `<p class="cc-desc">${escapeHtml(r.CONSENT_DESCRIPTION)}</p>` : ""}
+          ${site ? line("Site", site) : ""}
+        </div>
+        <div class="cc-side">${statusLine}${dates.join("")}</div>
+      </li>`;
+    });
+    return `<ul class="consent-cards" aria-label="${kindLabel}s, newest first">${cards.join("")}</ul>`;
   }
 
   // ---------------------------------------------------------------- sticky header
-  // The column headings stick directly under the sticky property block, whose
-  // height changes (long addresses, "+N more" site names), so track it.
+  // Track the sticky property block's height (it changes with long addresses and
+  // "+N more" site names) so a highlighted consent can stop just below it.
   const stickyBlock = $("detail-sticky");
   function updateStickyHeight() {
     document.documentElement.style.setProperty("--sticky-h", `${Math.ceil(stickyBlock.getBoundingClientRect().height)}px`);
   }
   new ResizeObserver(updateStickyHeight).observe(stickyBlock);
-
-  // ---------------------------------------------------------------- card mode
-  // Show the compact cards instead of the table whenever the table wouldn't fit
-  // the consents area without columns being cut off: always on phones, and on
-  // tablets / small windows when needed. Re-checked on tab change and resize.
-  const phoneQuery = window.matchMedia("(max-width: 640px)");
-  function updateCardMode() {
-    const dc = els.detailContent;
-    if (dc.hidden) return;
-    if (phoneQuery.matches) { dc.classList.add("use-cards"); return; }
-    const panel = [els.panelBuilding, els.panelResource, els.panelOther].find((p) => !p.hidden);
-    const table = panel && panel.querySelector("table.consents");
-    if (!table) return;                       // nothing to measure (no consents in this tab)
-    dc.classList.remove("use-cards");         // measure the table at its natural width...
-    const fits = table.getBoundingClientRect().width <= panel.clientWidth + 1;
-    dc.classList.toggle("use-cards", !fits);  // ...and switch before the browser paints
-  }
-  let lastDetailWidth = 0;
-  new ResizeObserver((entries) => {
-    const w = Math.round(entries[0].contentRect.width);
-    if (w !== lastDetailWidth) { lastDetailWidth = w; updateCardMode(); }
-  }).observe(document.querySelector(".detail"));
 
   // ---------------------------------------------------------------- tabs
   const tabs = [els.tabBuilding, els.tabResource, els.tabOther];
@@ -868,7 +837,6 @@
       t.tabIndex = on ? 0 : -1;
       $(t.getAttribute("aria-controls")).hidden = !on;
     }
-    updateCardMode();
     if (focus) tab.focus();
   }
   tabs.forEach((t) => {

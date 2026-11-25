@@ -263,7 +263,6 @@ mark { background: #fff0b3; color: inherit; padding: 0; }
 }
 
 /* Consent highlighted because it matched the search */
-table.consents tr.is-match, table.consents tr.is-match:hover { background: #fff8d6; box-shadow: inset 4px 0 0 var(--orange); }
 .match-tag {
   display: inline-block; margin-top: 4px; font-size: .6875rem; font-weight: 700; text-transform: uppercase; white-space: nowrap;
   letter-spacing: .03em; color: #8a3b12; background: #fde3d6; border-radius: 999px; padding: 1px 8px;
@@ -309,13 +308,9 @@ table.consents tr.is-match, table.consents tr.is-match:hover { background: #fff8
 .tab-panel { padding-top: 16px; }
 .tab-panel:focus-visible { outline-offset: 4px; }
 
-/* Consents table */
-.table-wrap { overflow-x: auto; }
-table.consents tbody tr { scroll-margin-top: 16px; }
-
-/* Desktop: the property block (address -> tabs) and the column headings stay
-   at the top of the screen while scrolling through the consents, then scroll
-   away at the end of the table. Not on narrow or short screens. */
+/* Desktop: the property block (address -> tabs) stays at the top of the screen
+   while scrolling through the consents, then scrolls away at the end of the list.
+   Not on narrow or short screens. */
 @media (min-width: 861px) and (min-height: 600px) {
   .detail-sticky {
     position: sticky; top: 0; z-index: 3;
@@ -323,47 +318,14 @@ table.consents tbody tr { scroll-margin-top: 16px; }
     padding-top: 12px; margin-top: -12px;     /* a little breathing room above the address when stuck */
   }
   .detail-sticky .tabs { margin-bottom: 0; padding-bottom: 16px; }
-  .detail-sticky + .tab-panel, #detail-content .tab-panel { padding-top: 0; }
-  .table-wrap { overflow: visible; }            /* a scrolling wrapper would stop the headings sticking */
-  /* -1px overlaps the block slightly so no sliver of the rows shows between them */
-  table.consents thead th { position: sticky; top: calc(var(--sticky-h, 0px) - 1px); z-index: 2; }
-  table.consents tbody tr { scroll-margin-top: calc(var(--sticky-h, 0px) + 52px); }
+  #detail-content .tab-panel { padding-top: 0; }
+  /* a highlighted consent stops just below the sticky block */
+  .consent-cards .consent-card { scroll-margin-top: calc(var(--sticky-h, 0px) + 16px); }
 }
-/* Fixed column widths, the same for every tab, so columns don't shift when switching
-   between Building and Resource. Description takes the remaining space. min-width is
-   the narrowest the table can be without cutting columns off; below it the page
-   switches to the cards. */
-table.consents { width: 100%; min-width: 835px; table-layout: fixed; border-collapse: collapse; font-size: .9375rem; }
-table.consents col.c-consent { width: 165px; }
-table.consents col.c-status  { width: 110px; }
-table.consents col.c-date    { width: 110px; }
-table.consents col.c-closed  { width: 140px; }
-table.consents td { overflow-wrap: anywhere; }
-table.consents .status { white-space: normal; }   /* a long stage name wraps inside its pill */
-table.consents th, table.consents td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-table.consents th {
-  font-size: .8125rem; color: var(--text-strong); font-weight: 700; white-space: nowrap;
-  background: var(--panel); border-bottom: 2px solid var(--border);
+/* Smaller tab buttons where the consents area is narrow (tablets, small windows, phones) */
+@media (max-width: 1100px) {
+  .tabs [role="tab"] { padding: 8px 14px; font-size: .875rem; }
 }
-table.consents tbody tr:hover { background: #fafafa; }
-table.consents td.nowrap { white-space: nowrap; }
-.consent-id { font-weight: 700; color: var(--navy); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.consent-code {
-  display: block; font-size: .75rem; color: var(--text-strong); letter-spacing: .02em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-.consent-type { display: block; font-size: .8125rem; color: var(--muted); }
-/* Stage badge with the decision pill underneath, left edges aligned */
-.status-stack { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-/* Pull the pills left by their padding so the pill text lines up with the
-   "Status" heading and the text in the other columns */
-table.consents .status-stack { margin-left: -10px; }
-@media (max-width: 640px) {
-  /* Phone cards have no heading row to line up with; keep pills clear of the card edge */
-  table.consents .status-stack { margin-left: 0; }
-}
-.consent-site { display: block; font-size: .8125rem; color: var(--muted); }
-.desc { min-width: 220px; color: var(--text-strong); }
 
 .status {
   display: inline-block; font-size: .8125rem; font-weight: 700;
@@ -374,38 +336,37 @@ table.consents .status-stack { margin-left: -10px; }
 .status.info { background: var(--info-bg); color: var(--info-fg); }
 .status.warn { background: var(--warn-bg); color: var(--warn-fg); }
 .status.bad  { background: var(--bad-bg);  color: var(--bad-fg); }
-/* Decision: same pill, outlined instead of filled */
-.status.decision { background: #fff; box-shadow: inset 0 0 0 1px currentColor; font-weight: 600; }
 
 .none { color: var(--muted); padding: 8px 0; margin: 0; }
 
-/* Compact consent cards ("phone mode"). The page switches to these whenever the
-   table wouldn't fit the consents area - always on phones, and on tablets and
-   small windows too - by adding .use-cards to #detail-content. */
-.consent-cards { display: none; }
-.use-cards .table-wrap { display: none; }
-.use-cards .consent-cards { display: block; list-style: none; margin: 0; padding: 0; }
-.use-cards .tabs [role="tab"] { padding: 8px 14px; font-size: .875rem; }
+/* Consent cards - every screen size. Same font size throughout. On wider cards
+   the details sit on the left and the status and dates on the right. */
+.consent-cards { list-style: none; margin: 0; padding: 0; container-type: inline-size; }
 .consent-card {
   border: 1px solid var(--border); border-radius: var(--radius);
   padding: 12px 14px; margin-bottom: 12px;
   font-size: .9375rem; line-height: 1.45; color: var(--text-strong);
   scroll-margin-top: 16px;
+  overflow-wrap: anywhere;
 }
 .consent-card p { margin: 0 0 4px; }
-.consent-card p:last-child { margin-bottom: 0; }
+.consent-card .cc-main > p:last-child, .consent-card .cc-side > p:last-child { margin-bottom: 0; }
+.consent-card .cc-main { margin-bottom: 4px; }
 .consent-card .cc-title { color: var(--navy); font-weight: 700; }
 .consent-card .cc-k { font-weight: 600; color: var(--text-strong); }
 .consent-card .cc-desc { margin: 6px 0; }
-.consent-card .cc-status .status { margin-right: 4px; vertical-align: 1px; }
+.consent-card .cc-code, .consent-card .cc-dim { color: var(--muted); }
+.consent-card .cc-pills .status { margin-right: 4px; vertical-align: 1px; }
 .consent-card.is-match { background: #fff8d6; box-shadow: inset 4px 0 0 var(--orange); }
-@media (min-width: 861px) and (min-height: 600px) {
-  /* where the property block sticks, stop a highlighted card just below it */
-  .consent-card { scroll-margin-top: calc(var(--sticky-h, 0px) + 16px); }
+@container (min-width: 620px) {
+  .consent-card { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 0 24px; }
+  .consent-card .cc-main { margin-bottom: 0; }
+  .consent-card .cc-side { border-left: 1px solid var(--border); padding-left: 18px; }
 }
 
 /* Phone */
 @media (max-width: 640px) {
+  .consent-card .cc-code { display: none; }   /* type code: desktop and tablets only */
   .map { height: 260px; }
   .detail { padding: 18px 16px 20px; }
   .property-summary h2 { font-size: 1.625rem; }

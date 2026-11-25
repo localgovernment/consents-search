@@ -121,6 +121,13 @@ window.CONSENTS_SEARCH_CONFIG = {
     S: { label: "Suspended", tone: "warn" }
   },
 
+  // Effective date: not in the data yet. Until it is, every consent card shows
+  // "Effective: Not yet available". When the field is added to the consents
+  // service, put its name here (e.g. "CONSENT_EFFECTIVE_DATE") and the card shows
+  // the date instead (and no line when it's blank).
+  effectiveDateField: null,
+  effectiveDatePlaceholder: "Not yet available",
+
   // CONSENT_DECISION_TYPE_CODE -> label and colour, shown as an outlined pill
   // under the status when it adds something (e.g. "Granted" under "Issued").
   // Codes not listed show as-is in grey.
