@@ -386,7 +386,7 @@ mark { background: #fff0b3; color: inherit; padding: 0; }
   display: flex; justify-content: space-between; align-items: center; gap: 24px 40px; flex-wrap: wrap;
   padding-top: 48px; padding-bottom: 48px;
 }
-.site-footer__text { max-width: 60ch; font-size: .9375rem; }
+.site-footer__text { max-width: 70ch; font-size: .9375rem; }   /* wide enough for the disclaimer in 4 lines */
 .site-footer__text p { margin: 0 0 12px; }
 .site-footer__copy { text-transform: uppercase; font-size: .875rem; margin-bottom: 0 !important; }
 .site-footer__logo { line-height: 0; }
