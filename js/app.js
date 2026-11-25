@@ -551,7 +551,9 @@
   // result was found through, if any).
   // scrollToTop: on desktop, bring the search panel and map to the top of the screen
   // (user selections; not when a property opens from a link or the Back button).
-  async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true } = {}) {
+  // moveMap: zoom the map to the property (false when it was picked by clicking the map,
+  // so the map stays where the person is looking and just highlights the boundary).
+  async function selectProperty(attrs, { updateUrl = true, highlightIds, scrollToTop = true, moveMap = true } = {}) {
     selectedKey = resultKey(attrs);
     // A consent with no linked property is shown on its own, so there's nothing to highlight
     if (!highlightIds) highlightIds = attrs._unlinked ? [] : (attrs._consentMatches || []).map((m) => m.fileId);
@@ -582,7 +584,7 @@
     detailController = new AbortController();
     const { signal } = detailController;
 
-    showOnMap(attrs, signal);
+    showOnMap(attrs, signal, moveMap);
     const matchRow = await loadConsents(attrs, signal, highlightIds, markTerms);
 
     if (matchRow) {
@@ -612,7 +614,7 @@
     document.title = `[Beta] ${els.propertyTitle.textContent} – consents | Taupō District Council`;
   }
 
-  async function showOnMap(a, signal) {
+  async function showOnMap(a, signal, moveMap = true) {
     selectionLayer.removeAll();
     if (a._unlinked) {
       view.goTo({ center: CFG.initialCenter, zoom: CFG.initialZoom }, { duration: 600, signal }).catch(() => {});
@@ -634,7 +636,7 @@
           outline: { color: [0, 96, 122, 1], width: 3 }
         }
       }));
-      await view.goTo({ target: f.geometry.extent.clone().expand(2.2) }, { duration: 600, signal });
+      if (moveMap) await view.goTo({ target: f.geometry.extent.clone().expand(2.2) }, { duration: 600, signal });
     } catch (err) {
       if (!isAbort(err)) console.warn("Could not show property on map", err);
     }
@@ -869,18 +871,23 @@
         num: CFG.maxResults
       }, { signal });
       const rows = sortResults(fs.features.map((f) => f.attributes), []);
-      if (!rows.length) return;
-      els.input.value = "";
-      els.clear.hidden = true;
+      if (!rows.length) return;                 // empty spot (road, lake): leave everything as it is
+      // The property at the top of the list is selected, and its address goes in the
+      // search box (valuation number if it has no address). No search is run, so the
+      // list keeps showing the properties at the clicked spot; Enter opens the top one.
+      debouncedSearch.cancel();
+      const top = rows[0];
+      els.input.value = top.address || top.valuation_id || "";
+      els.clear.hidden = !els.input.value;
       currentResults = rows;
       currentTerms = [];
-      currentKey = "";   // empty box: Enter picks the top property at the clicked spot
+      currentKey = searchTerms(els.input.value).join(" ");
       renderResults(rows, [], rows.length);
       setStatus(els.resultsStatus, rows.length === 1
         ? "1 property at the location you clicked."
         : `${rows.length} properties at the location you clicked.`);
       loadConsentCounts(rows, signal);
-      if (rows.length === 1) selectProperty(rows[0]);
+      selectProperty(top, { moveMap: false });
     } catch (err) {
       if (!isAbort(err)) console.warn("Map identify failed", err);
     }
