@@ -113,6 +113,7 @@ a:hover { color: var(--navy); }
 
 .page-intro h1 { font-size: 3rem; line-height: 1.05; margin: 0 0 16px; max-width: 22ch; }
 .page-intro .lede { margin: 0; max-width: 54rem; font-size: 1.0625rem; text-wrap: pretty; }   /* two lines on desktop, no lone last word */
+.page-intro .lede + .lede { margin-top: 12px; }   /* disclaimer under the intro, same font, size and colour */
 
 @media (max-width: 640px) {
   .page-intro { padding-top: 20px; padding-bottom: 20px; }

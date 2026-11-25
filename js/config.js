@@ -2,6 +2,11 @@
 // Edit this file to point at different services or relabel codes;
 // app.js should not need to change.
 window.CONSENTS_SEARCH_CONFIG = {
+  // Disclaimer shown under the intro text and in the footer (edit it here only)
+  disclaimer: "The information contained in these records is provided for general informational purposes only. " +
+    "While we strive to keep the data up to date and accurate, any records shown may be incomplete or contain inaccuracies. " +
+    "Any reliance you place on such information is strictly at your own risk.",
+
   // ArcGIS Maps SDK for JavaScript version loaded in index.html is set there.
 
   propertyLayerUrl:

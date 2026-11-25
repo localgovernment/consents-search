@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Prompt:wght@500;600&display=swap">
 
   <link rel="icon" href="assets/tdc-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261125-6">
+  <link rel="stylesheet" href="css/styles.css?v=20261125-7">
 </head>
 <body>
   <a class="skip-link" href="#search-input">Skip to search</a>
@@ -57,6 +57,8 @@
     </nav>
     <h1>Search for building and resource consents</h1>
     <p class="lede">Find a property by its address, valuation number, legal description, consent number or consent site name, then select it to see the building and resource consents recorded against it.</p>
+    <!-- Disclaimer text comes from "disclaimer" in js/config.js (also used in the footer) -->
+    <p class="lede disclaimer" data-disclaimer></p>
   </div>
 
   <main class="wrap layout">
@@ -117,7 +119,7 @@
   <footer class="site-footer">
     <div class="wrap site-footer__inner">
       <div class="site-footer__text">
-        <p>Consent information is taken from council records and may not be complete or up to date.</p>
+        <p data-disclaimer></p>
         <p class="site-footer__copy">&copy; <span id="year">2026</span> Taupō District Council</p>
       </div>
       <a class="site-footer__logo" href="https://www.taupodc.govt.nz/">
@@ -128,7 +130,13 @@
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 
   <!-- Bump ?v= on every change so browsers (phones especially) don't keep using old cached files -->
-  <script src="js/config.js?v=20261125-6"></script>
-  <script src="js/app.js?v=20261125-6"></script>
+  <script src="js/config.js?v=20261125-7"></script>
+  <script>
+    // Fill in the disclaimer (one copy of the text, in js/config.js) everywhere it appears
+    document.querySelectorAll("[data-disclaimer]").forEach(function (el) {
+      el.textContent = window.CONSENTS_SEARCH_CONFIG.disclaimer;
+    });
+  </script>
+  <script src="js/app.js?v=20261125-7"></script>
 </body>
 </html>
