@@ -5,10 +5,14 @@ window.CONSENTS_SEARCH_CONFIG = {
   // Beta / test data banner at the top of the page: true = show, false = hide
   showBetaBanner: true,
 
-  // Disclaimer shown under the intro text and in the footer (edit it here only)
-  disclaimer: "The information contained in these records is provided for general informational purposes only. " +
-    "While we strive to keep the data up to date and accurate, any records shown may be incomplete or contain inaccuracies. " +
-    "Any reliance you place on such information is strictly at your own risk.",
+  // Disclaimer shown under the intro and in the footer (edit it here only).
+  // HTML is allowed, e.g. links: <a href="...">text</a>. Use double quotes inside
+  // the HTML and single quotes around each line, and close every tag you open.
+  disclaimer: 'The information contained in these records is provided for general informational purposes only. ' +
+    'While we strive to keep the data up to date and accurate, any records shown may be incomplete or contain inaccuracies. ' +
+    'Any reliance you place on such information is strictly at your own risk. ' +
+    'For official property information, you can apply for a ' +
+    '<a href="https://www.taupodc.govt.nz/property-and-rates/land-information-memorandums">Land Information Memorandum (LIM)</a>.',
 
   // ArcGIS Maps SDK for JavaScript version loaded in index.html is set there.
 
