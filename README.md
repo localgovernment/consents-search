@@ -37,7 +37,7 @@ Consents that match a consent number or site name search but aren't linked to an
 | File | Purpose |
 | --- | --- |
 | `index.html` | Page markup. Loads the ArcGIS Maps SDK for JavaScript (4.34) from js.arcgis.com |
-| `js/config.js` | The **disclaimer** text (shown under the intro and in the footer; edit it here only), service URLs, join fields, search fields, and labels for consent type, stage and decision codes. Types are grouped by code prefix (BC = building, RC = resource, anything else = other), and the raw type code is always shown |
+| `js/config.js` | The **beta banner** on/off switch (`showBetaBanner`), the **disclaimer** text (shown under the intro and in the footer; edit it here only), service URLs, join fields, search fields, and labels for consent type, stage and decision codes. Types are grouped by code prefix (BC = building, RC = resource, anything else = other), and the raw type code is always shown |
 | `js/app.js` | Search, results, consents, map and deep-link logic |
 | `css/styles.css` | Styling to match www.taupodc.govt.nz (Prompt and Open Sans fonts, council colours). Responsive: a sidebar on desktop, stacked on narrow screens. Consents are cards everywhere: two columns inside each card on wider screens, one on phones |
 | `FOLLOW-UPS.md` | Open issues and questions to resolve before go-live |

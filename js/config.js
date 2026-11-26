@@ -2,6 +2,9 @@
 // Edit this file to point at different services or relabel codes;
 // app.js should not need to change.
 window.CONSENTS_SEARCH_CONFIG = {
+  // Beta / test data banner at the top of the page: true = show, false = hide
+  showBetaBanner: true,
+
   // Disclaimer shown under the intro text and in the footer (edit it here only)
   disclaimer: "The information contained in these records is provided for general informational purposes only. " +
     "While we strive to keep the data up to date and accurate, any records shown may be incomplete or contain inaccuracies. " +

@@ -16,7 +16,9 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Prompt:wght@500;600&display=swap">
 
   <link rel="icon" href="assets/tdc-logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="css/styles.css?v=20261125-8">
+  <link rel="stylesheet" href="css/styles.css?v=20261126-1">
+  <!-- Settings (loaded first so the page can use them before it's drawn) -->
+  <script src="js/config.js?v=20261126-1"></script>
 </head>
 <body>
   <a class="skip-link" href="#search-input">Skip to search</a>
@@ -39,12 +41,17 @@
       <button type="button" class="beta-close" aria-label="Dismiss beta notice" title="Dismiss">&times;</button>
     </div>
   </div>
-  <!-- Closing hides the notice for this visit only; it shows again on reload -->
+  <!-- Turned on/off with showBetaBanner in js/config.js. Closing it hides it for this
+       visit only; it shows again on reload. -->
   <script>
-    document.querySelector("#beta-banner .beta-close").addEventListener("click", function () {
-      document.getElementById("beta-banner").hidden = true;
-      document.getElementById("search-input").focus();
-    });
+    if (!window.CONSENTS_SEARCH_CONFIG.showBetaBanner) {
+      document.getElementById("beta-banner").remove();
+    } else {
+      document.querySelector("#beta-banner .beta-close").addEventListener("click", function () {
+        document.getElementById("beta-banner").hidden = true;
+        document.getElementById("search-input").focus();
+      });
+    }
   </script>
 
   <div class="wrap page-intro">
@@ -130,13 +137,12 @@
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 
   <!-- Bump ?v= on every change so browsers (phones especially) don't keep using old cached files -->
-  <script src="js/config.js?v=20261125-8"></script>
   <script>
     // Fill in the disclaimer (one copy of the text, in js/config.js) everywhere it appears
     document.querySelectorAll("[data-disclaimer]").forEach(function (el) {
       el.textContent = window.CONSENTS_SEARCH_CONFIG.disclaimer;
     });
   </script>
-  <script src="js/app.js?v=20261125-8"></script>
+  <script src="js/app.js?v=20261126-1"></script>
 </body>
 </html>
